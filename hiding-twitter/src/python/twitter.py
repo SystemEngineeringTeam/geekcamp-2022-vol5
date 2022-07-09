@@ -4,12 +4,12 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta 
 # 先ほど取得した各種キーを代入する
-# load_dotenv()
+load_dotenv()
 
-CK = "AOKZUFe29rcuFs08fLAoeymW3"
-CS = "W8BmhXkKCAxjaP5k7EUhUE6FZps6NBXbJ0Qn6FLSSyzfQJaz63"
-AT = "1015518640806944768-WU1YaKZLaWg3sM0yRLMmOhReGoxR1d"
-AS = "tTvX0DNNLeFzjmYfJ3s2IIvJwSY3bc9SSxA2HDuzI3kRp"
+CK = os.environ['CK']
+CS = os.environ['CS']
+AT = os.environ['AT']
+AS = os.environ['AS']
 
 # Twitterオブジェクトの生成
 auth = tweepy.OAuthHandler(CK, CS)
@@ -47,5 +47,5 @@ for status in api.home_timeline():
     #listに追加する
     list.append(str)
     #JSON形式で出力
-with open('./twiiter.json', 'w') as f:
+with open('./twitter.json', 'w') as f:
     json.dump(list, f, ensure_ascii=False, indent=4)
