@@ -26,7 +26,7 @@ def twitterPost():
         return obj.isoformat() if hasattr(obj, 'isoformat') else obj
 
     # 正規表現で投稿内容を抽出
-    pattern = re.compile(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+')
+    pattern = 'https?://[\\w/:%#\\$&\\?\\(\\)~\\.=\\+\\-]+'
 
     list_ = []
     i = 1
@@ -46,19 +46,22 @@ def twitterPost():
         #json形式で出力するための準備
 
         # 正規表現
-        result = pattern.findall(status.text)
-        #print(result)
+        result = re.search(pattern, status.text)
+        url = ' '
+        if result:
+            url = result.group()
+
         str_ = {
-            i:{
-                "name":status.user.name,
-                "text":status.text,
-                "id":status.id,
-                "time":date_handler(status.created_at + timedelta(hours=9)),
-                "favorite_count":status.favorite_count,
-                "retweet_count":status.retweet_count,
-                "URL":result
-            }
+        i:{
+            "name":status.user.name,
+            "text":status.text,
+            "id":status.id,
+            "time":date_handler(status.created_at + timedelta(hours=9)),
+            "favorite_count":status.favorite_count,
+            "retweet_count":status.retweet_count,
+            "URL":url
         }
+    }
         #listに追加する
         list_.append(str_)
         i += 1
