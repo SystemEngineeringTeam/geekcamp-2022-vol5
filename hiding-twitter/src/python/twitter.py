@@ -1,5 +1,7 @@
 import tweepy
 import json
+import os
+from dotenv import load_dotenv
 # 先ほど取得した各種キーを代入する
 CK=""
 CS=""
