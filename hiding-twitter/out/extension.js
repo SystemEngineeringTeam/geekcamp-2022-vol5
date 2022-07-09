@@ -113,8 +113,7 @@ function activate(context) {
                     //filepathを開く
                     vscode.window.showTextDocument(doc);
                 });
-                //処理が終了したらステータスバーの見た目を元に戻す
-                myStatusBarItem.text = `${icon} Twitter`;
+                //処理が終了したらステータスバーの見た目を元に戻す				myStatusBarItem.text = `${icon} Twitter`;
                 myStatusBarItem.show();
             }, (error) => {
                 console.error("error:", error.message);
