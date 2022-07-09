@@ -3,6 +3,8 @@ import json
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+import re
+
 # 先ほど取得した各種キーを代入する
 load_dotenv()
 
@@ -22,6 +24,9 @@ api = tweepy.API(auth)
 def date_handler(obj):
     return obj.isoformat() if hasattr(obj, 'isoformat') else obj
 
+# 正規表現で投稿内容を抽出
+# pattern = 'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+'
+
 list = []
 i = 1
 #1ツイートずつループ
@@ -38,6 +43,10 @@ for status in api.home_timeline():
     # print(status.favorite_count)
     # print(status.retweet_count)
     #json形式で出力するための準備
+    
+    # 正規表現
+    #result = re.match(pattern, status.text)
+    #print(result)
     str = {
         i:{
             "name":status.user.name,
@@ -45,7 +54,8 @@ for status in api.home_timeline():
             "id":status.id,
             "time":date_handler(status.created_at + timedelta(hours=9)),
             "favorite_count":status.favorite_count,
-            "retweet_count":status.retweet_count
+            "retweet_count":status.retweet_count,
+            #"URL":result
         }
     }
     #listに追加する
