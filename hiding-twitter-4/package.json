@@ -10,16 +10,49 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:hiding-twitter-4.helloWorld"
+		"onCommand:hiding-twitter-4.helloWorld",
+		"onCommand:hiding-twitter-4.helloOriginal",
+		"onCommand:hiding-twitter-4.getJson",
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
+		{
+			"command": "hiding-twitter-4.helloWorld",
+			"title": "Hello World"
+		},
+		{
+			"command": "hiding-twitter-4.helloOriginal",
+			"title": "call Original"
+		},
+		{
+			"command": "hiding-twitter-4.getJson",
+			"title": "getJson",
+			"icon": {
+			"dark": "./img/fire.gif",
+			"light": "./img/setting.svg"
+			}
+		}
+		],
+		"menus": {
+		"editor/title": [
 			{
-				"command": "hiding-twitter-4.helloWorld",
-				"title": "Hello World"
+			"when": "",
+			"command": "hiding-twitter-4.getJson",
+			"group": "navigation"
 			}
 		]
+		},
+		"icons": {
+		"icon-fire": {
+			"description": "Ubuntu icon",
+			"default": {
+			"fontPath": "./img/icomoon.woff",
+		"fontCharacter": "\\E9A9"
+			}
+	}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
