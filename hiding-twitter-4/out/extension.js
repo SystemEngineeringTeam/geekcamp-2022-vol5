@@ -147,9 +147,9 @@ function activate(context) {
                     //filepathを開く
                     vscode.window.showTextDocument(doc);
                 });
-                const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
-                const setAsGlobal = (settings.inspect("oauth_token").workspaceValue === undefined);
-                settings.update("oauth_token", "hoge", setAsGlobal); // myParamをhogeに変更
+                // const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
+                // const setAsGlobal = (settings.inspect("oauth_token")!.workspaceValue === undefined);
+                // settings.update("oauth_token", "hoge",setAsGlobal); // myParamをhogeに変更
                 const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
                 vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
                 //処理が終了したらステータスバーの見た目を元に戻す
@@ -165,6 +165,15 @@ function activate(context) {
         vscode.window.showInformationMessage('JsonをTextに貼り付けたよ');
     });
     context.subscriptions.push(helloOriginal);
+    const handleUri = (uri) => {
+        const queryParams = new URLSearchParams(uri.query);
+        if (queryParams.has('say')) {
+            vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('say')}`);
+        }
+    };
+    context.subscriptions.push(vscode.window.registerUriHandler({
+        handleUri
+    }));
 }
 exports.activate = activate;
 function deactivate() { }

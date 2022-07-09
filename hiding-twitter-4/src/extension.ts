@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 
+
 // ApiからJsonをもらう時に、型を指定する
 //ここは受け取るデータによって変える
 type Tweet ={
@@ -202,9 +203,9 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 
 
-				const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
-				const setAsGlobal = (settings.inspect("oauth_token")!.workspaceValue === undefined);
-				settings.update("oauth_token", "hoge",setAsGlobal); // myParamをhogeに変更
+				// const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
+				// const setAsGlobal = (settings.inspect("oauth_token")!.workspaceValue === undefined);
+				// settings.update("oauth_token", "hoge",setAsGlobal); // myParamをhogeに変更
 
 				const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
 				vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
@@ -229,6 +230,19 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('JsonをTextに貼り付けたよ');
 	});
 	context.subscriptions.push(helloOriginal);
+
+
+	const handleUri = (uri: vscode.Uri) => {
+		const queryParams = new URLSearchParams(uri.query);
+		if (queryParams.has('say')) {
+			vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('say') as string}`);
+		}
+	};
+	context.subscriptions.push(
+		vscode.window.registerUriHandler({
+			handleUri
+		})
+	);
 
 }
 
