@@ -3,9 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const axios_1 = require("axios");
-// type GetUsersResponse = {
-// 	data: password[];
-// };
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -14,7 +11,7 @@ async function getPass() {
         //ここで、Apiを叩いて、パースもしてくれている
         const { data, status } = await axios_1.default.get(
         //本番はこのURLも変える
-        'https://corporatebs-generator.sameerkumar.website/', {
+        'http://setwitter.harutiro.net:5001/get', {
             //受け取るデータの情報
             headers: {
                 Accept: 'application/json',
@@ -27,7 +24,7 @@ async function getPass() {
         console.log(JSON.stringify(data, null, 4));
         //パースしたデータをコンソールに流す
         console.log("fuck you!");
-        console.log(data.phrase);
+        console.log(data.data);
         //APiを取得した時の状態を表示してくれている
         //成功したら200を返してくれる。
         //ページがなかったときは404とか

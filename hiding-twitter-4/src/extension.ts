@@ -3,13 +3,20 @@ import axios from 'axios';
 
 // ApiからJsonをもらう時に、型を指定する
 //ここは受け取るデータによって変える
-type password ={
-	phrase: string;
+type Tweet ={
+	name           : string,
+	text           : string,
+	id             : number,
+	time           : string,
+	favorite_count : number,
+	retweet_count  : number
+	
 };
 
-// type GetUsersResponse = {
-// 	data: password[];
-// };
+type TweetArray = {
+	data: Tweet[];
+
+};
 
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
@@ -17,9 +24,9 @@ type password ={
 async function getPass(): Promise<string> {
 	try{
 		//ここで、Apiを叩いて、パースもしてくれている
-		const { data, status } = await axios.get<password>(
+		const { data, status } = await axios.get<TweetArray>(
 			//本番はこのURLも変える
-				'https://corporatebs-generator.sameerkumar.website/',
+				'http://setwitter.harutiro.net:5001/get',
 				{
 					//受け取るデータの情報
 					headers: {
@@ -36,7 +43,7 @@ async function getPass(): Promise<string> {
 
 		//パースしたデータをコンソールに流す
 		console.log("fuck you!");
-		console.log(data.phrase);
+		console.log(data.data);
 
 		//APiを取得した時の状態を表示してくれている
 		//成功したら200を返してくれる。
