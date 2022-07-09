@@ -3,10 +3,12 @@ import json
 import os
 from dotenv import load_dotenv
 # 先ほど取得した各種キーを代入する
-CK=""
-CS=""
-AT=""
-AS=""
+# load_dotenv()
+
+CK = ""
+CS = ""
+AT = ""
+AS = ""
 
 # Twitterオブジェクトの生成
 auth = tweepy.OAuthHandler(CK, CS)
