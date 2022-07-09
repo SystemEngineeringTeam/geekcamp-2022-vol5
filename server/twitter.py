@@ -26,7 +26,7 @@ def twitterPost():
         return obj.isoformat() if hasattr(obj, 'isoformat') else obj
 
     # 正規表現で投稿内容を抽出
-    # pattern = 'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+'
+    pattern = 'https?://[\\w/:%#\\$&\\?\\(\\)~\\.=\\+\\-]+'
 
     list_ = []
     i = 1
@@ -34,31 +34,34 @@ def twitterPost():
     for status in api.home_timeline():
         #デバッグ用
         #見映えのため区切る
-        print('-------------------------------------------')
+        # print('-------------------------------------------')
         # #ユーザ名表示
-        print('name:' + status.user.name)
+        # print('name:' + status.user.name)
         # #内容表示
-        print(status.id)
-        print(status.text)
-        print(status.created_at + timedelta(hours=9))
-        print(status.favorite_count)
-        print(status.retweet_count)
+        # print(status.id)
+        # print(status.text)
+        # print(status.created_at + timedelta(hours=9))
+        # print(status.favorite_count)
+        # print(status.retweet_count)
         #json形式で出力するための準備
 
         # 正規表現
-        #result = re.match(pattern, status.text)
-        #print(result)
+        result = re.search(pattern, status.text)
+        url = ' '
+        if result:
+            url = result.group()
+
         str_ = {
-            i:{
-                "name":status.user.name,
-                "text":status.text,
-                "id":status.id,
-                "time":date_handler(status.created_at + timedelta(hours=9)),
-                "favorite_count":status.favorite_count,
-                "retweet_count":status.retweet_count,
-                #"URL":result
-            }
+        i:{
+            "name":status.user.name,
+            "text":status.text,
+            "id":status.id,
+            "time":date_handler(status.created_at + timedelta(hours=9)),
+            "favorite_count":status.favorite_count,
+            "retweet_count":status.retweet_count,
+            "URL":url
         }
+    }
         #listに追加する
         list_.append(str_)
         i += 1
@@ -67,6 +70,6 @@ def twitterPost():
     # with open('./twitter.json', 'w') as f:
     #     json.dump(list_, f, ensure_ascii=False, indent=4)
 
-    print(type(list_))
+    # print(type(list_))
 
     return list_
