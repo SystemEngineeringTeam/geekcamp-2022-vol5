@@ -1,5 +1,5 @@
 {
-  "name": "hiding-twitter",
+	"name": "hiding-twitter",
 	"displayName": "hiding-twitter",
 	"description": "",
 	"version": "0.0.1",
@@ -10,7 +10,10 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:hiding-twitter.helloWorld"
+        "onCommand:hiding-twitter.helloWorld",
+		"onCommand:hiding-twitter.helloOriginal",
+		"onCommand:hiding-twitter.getJson",
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -18,9 +21,40 @@
 			{
 				"command": "hiding-twitter.helloWorld",
 				"title": "Hello World"
+			},
+			{
+				"command": "test.helloOriginal",
+				"title": "call Original"
+			},
+			{
+				"command": "test.getJson",
+				"title": "getJson",
+				"icon": {
+				"dark": "./img/fire.gif",
+				"light": "./img/setting.svg"
+				}
 			}
+			],
+			"menus": {
+			"editor/title": [
+				{
+				"when": "",
+			"command": "test.getJson",
+			"group": "navigation"
+				}
 		]
-	},
+			},
+			"icons": {
+		"icon-fire": {
+				"description": "Ubuntu icon",
+				"default": {
+				"fontPath": "./img/icomoon.woff",
+				"fontCharacter": "\\E9A9"
+				}
+			}
+			}
+		},
+
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
 		"compile": "tsc -p ./",
