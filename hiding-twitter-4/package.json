@@ -14,6 +14,7 @@
 		"onCommand:hiding-twitter-4.helloWorld",
 		"onCommand:hiding-twitter-4.helloOriginal",
 		"onCommand:hiding-twitter-4.getJson",
+		"onCommand:hiding-twitter-4.test",
 		"*"
 	],
 	"main": "./out/extension.js",
@@ -41,6 +42,10 @@
 			}
 		},
 		"commands": [
+			{
+				"command": "hiding-twitter-4.test",
+				"title": "testCome"
+			},
 			{
 				"command": "hiding-twitter-4.helloWorld",
 				"title": "Hello World"

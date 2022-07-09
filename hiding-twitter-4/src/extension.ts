@@ -168,6 +168,14 @@ export function activate(context: vscode.ExtensionContext) {
 	//contextで指定されたアクションを起こした時に関数を呼び出す
 	context.subscriptions.push(getJson);
 
+	let test = vscode.commands.registerCommand('hiding-twitter-4.test', () => {
+		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
+		vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+		vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+
+
+	});
+	context.subscriptions.push(test);
 
 	//helloOriginal
 	let helloOriginal = vscode.commands.registerCommand('hiding-twitter-4.helloOriginal', () => {
@@ -203,15 +211,6 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 
 
-				// const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
-				// const setAsGlobal = (settings.inspect("oauth_token")!.workspaceValue === undefined);
-				// settings.update("oauth_token", "hoge",setAsGlobal); // myParamをhogeに変更
-
-				const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-				vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-
-
-
 				//処理が終了したらステータスバーの見た目を元に戻す
 				myStatusBarItem.text = `${icon} Twitter`;
 				myStatusBarItem.show();
@@ -234,8 +233,19 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const handleUri = (uri: vscode.Uri) => {
 		const queryParams = new URLSearchParams(uri.query);
-		if (queryParams.has('say')) {
-			vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('say') as string}`);
+		if (queryParams.has('oauth_token')) {
+			vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_token') as string}`);
+
+			const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
+			const setAsGlobal = (settings.inspect("oauth_token")!.workspaceValue === undefined);
+			settings.update("oauth_token",queryParams.get('oauth_token') ,setAsGlobal); // myParamをhogeに変更
+		}
+		if (queryParams.has('oauth_verifier')) {
+			vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_verifier') as string}`);
+
+			const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
+			const setAsGlobal = (settings.inspect("oauth_verifier")!.workspaceValue === undefined);
+			settings.update("oauth_verifier",queryParams.get('oauth_verifier') ,setAsGlobal); // myParamをhogeに変更
 		}
 	};
 	context.subscriptions.push(
