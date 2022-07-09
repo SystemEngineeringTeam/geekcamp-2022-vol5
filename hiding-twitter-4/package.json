@@ -17,6 +17,28 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "oauth",
+			"properties":{
+				"hiding-twitter-4.oauth_token": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Path to the git executable",
+					"default": ""
+				},
+				"hiding-twitter-4.oauth_verifier": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Path to the git executable",
+					"default": ""
+				}
+			}
+		},
 		"commands": [
 		{
 			"command": "hiding-twitter-4.helloWorld",
