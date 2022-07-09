@@ -2,13 +2,14 @@ import tweepy
 import json
 import os
 from dotenv import load_dotenv
+from datetime import timedelta 
 # 先ほど取得した各種キーを代入する
 # load_dotenv()
 
-CK = ""
-CS = ""
-AT = ""
-AS = ""
+CK = "AOKZUFe29rcuFs08fLAoeymW3"
+CS = "W8BmhXkKCAxjaP5k7EUhUE6FZps6NBXbJ0Qn6FLSSyzfQJaz63"
+AT = "1015518640806944768-WU1YaKZLaWg3sM0yRLMmOhReGoxR1d"
+AS = "tTvX0DNNLeFzjmYfJ3s2IIvJwSY3bc9SSxA2HDuzI3kRp"
 
 # Twitterオブジェクトの生成
 auth = tweepy.OAuthHandler(CK, CS)
@@ -30,7 +31,7 @@ for status in api.home_timeline():
     #内容表示
     print(status.id)
     print(status.text)
-    print(status.created_at)
+    print(status.created_at + timedelta(hours=9))
     print(status.favorite_count)
     print(status.retweet_count)
     #json形式で出力するための準備
@@ -38,7 +39,7 @@ for status in api.home_timeline():
         status.user.name:{
             "text":status.text,
             "id":status.id,
-            "time":date_handler(status.created_at),
+            "time":date_handler(status.created_at + timedelta(hours=9)),
             "favorite_count":status.favorite_count,
             "retweet_count":status.retweet_count
         }
