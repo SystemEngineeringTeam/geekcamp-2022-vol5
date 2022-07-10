@@ -14,48 +14,35 @@ consumer_secret = os.environ['CS']
 
 @app.route('/get' ,methods=["GET"])
 def get():
-        base_url = 'https://api.twitter.com/'
-        access_token_url = base_url + 'oauth/access_token'
-
-        load_dotenv()
-        CK = os.environ['CK']
-        CS = os.environ['CS']
-        auth = tweepy.OAuthHandler(CK, CS)
 
         req = request.args
-        OT = req.get("oauth_token")
-        OV = req.get("oauth_verifier")
+        AT = req.get("oauth_token")
+        AS = req.get("oauth_verifier")
         ID = req.get("id")
 
-
-        #http://127.0.0.1:5000/authには、後ろにoauth_token と oauth_verifierがくっついて
-        #返されるので(URLパラメータ)以下の処理をする
-        #URLパラメータは request.args で利用できる。以下の例では、
-        #http://127.0.0.1:5000/auth?oauth_token=　の"="以降を取得できる
-        #defaultは、auth?以降がない場合の値を返すもの（例ではブランクを返す）
-
-
-        #URLから oauth_token を取り出して、auth.request_token[‘oauth_token’] にセット
-        auth.request_token['oauth_token'] = OT
-        #URLから、oauth_verifierを取り出して、oauth_token_secretにセット
-        auth.request_token['oauth_token_secret'] = OV
-        #ここの処理は調べきれてません
-        auth.get_access_token(OV)
-        #アクセストークンと、アクセルトークンシークレットをセット（通常のtweepyでツイートする処理と同様）
-
-        AT = auth.access_token
-        AS = auth.access_token_secret
-
-        print("keys")
-        print(AT)
-        print(AS)
-
-        lists = twitterPost(AT,AS)
+        lists , result = twitterPost(AT,AS)
     
         print(jsonify(lists))
 
-
         return jsonify(lists)
+
+@app.route('/result' ,methods=["GET"])
+def result():
+        base_url = 'https://api.twitter.com/'
+        access_token_url = base_url + 'oauth/access_token'
+
+        req = request.args
+        AT= req.get("oauth_token")
+        AS = req.get("oauth_verifier")
+        ID = req.get("id")
+
+        lists , result = twitterPost(AT,AS)
+    
+        print(jsonify(lists))
+
+        return jsonify({
+            "result":result
+        })
 
 @app.route('/twitter/request_token', methods=['GET'])
 def get_twitter_request_token():
@@ -87,20 +74,16 @@ def get_twitter_request_token():
 @app.route('/redirect', methods=['GET'])
 def get_twitter_redirect():
     try:
+        #http://127.0.0.1:5000/authには、後ろにoauth_token と oauth_verifierがくっついて
+        #返されるので(URLパラメータ)以下の処理をする
+        #URLパラメータは request.args で利用できる。以下の例では、
+        #http://127.0.0.1:5000/auth?oauth_token=　の"="以降を取得できる
+        #defaultは、auth?以降がない場合の値を返すもの（例ではブランクを返す）
         req = request.args
         oauthToken = req.get("oauth_token")
         oauthVerifier = req.get("oauth_verifier")
-    except:
-        return jsonify({
-            'status': False,
-            'error':'error'
-        })
 
-    return redirect(f'vscode://Sysken.hiding-twitter-4?oauth_token={oauthToken}&oauth_verifier={oauthVerifier}')
 
-@app.route('/favorite' ,methods=["GET"])
-def twitter_favorite():
-    # try:
         base_url = 'https://api.twitter.com/'
         access_token_url = base_url + 'oauth/access_token'
 
@@ -113,14 +96,6 @@ def twitter_favorite():
         OT = req.get("oauth_token")
         OV = req.get("oauth_verifier")
         ID = req.get("id")
-
-
-        #http://127.0.0.1:5000/authには、後ろにoauth_token と oauth_verifierがくっついて
-        #返されるので(URLパラメータ)以下の処理をする
-        #URLパラメータは request.args で利用できる。以下の例では、
-        #http://127.0.0.1:5000/auth?oauth_token=　の"="以降を取得できる
-        #defaultは、auth?以降がない場合の値を返すもの（例ではブランクを返す）
-
 
         #URLから oauth_token を取り出して、auth.request_token[‘oauth_token’] にセット
         auth.request_token['oauth_token'] = OT
@@ -136,6 +111,34 @@ def twitter_favorite():
         print("keys")
         print(AT)
         print(AS)
+
+
+
+    except:
+        return jsonify({
+            'status': False,
+            'error':'error'
+        })
+
+    return redirect(f'vscode://Sysken.hiding-twitter-4?oauth_token={AT}&oauth_verifier={AS}')
+
+
+
+@app.route('/favorite' ,methods=["GET"])
+def twitter_favorite():
+    # try:
+        base_url = 'https://api.twitter.com/'
+        access_token_url = base_url + 'oauth/access_token'
+
+        load_dotenv()
+        CK = os.environ['CK']
+        CS = os.environ['CS']
+        auth = tweepy.OAuthHandler(CK, CS)
+
+        req = request.args
+        AT = req.get("oauth_token")
+        AS = req.get("oauth_verifier")
+        ID = req.get("id")
 
         auth.set_access_token(auth.access_token,auth.access_token_secret)
         api = tweepy.API(auth)
