@@ -5,22 +5,23 @@ from dotenv import load_dotenv
 from datetime import timedelta
 import re
 
-def twitterPost():
-    # 先ほど取得した各種キーを代入する
-    load_dotenv()
+# 各種キーを.envからセット
+# 先ほど取得した各種キーを代入する
+load_dotenv()
+CK = os.environ['CK']
+CS = os.environ['CS']
+# AT = os.environ['AT']
+# AS = os.environ['AS']
 
-    # 各種キーを.envからセット
-    CK = os.environ['CK']
-    CS = os.environ['CS']
-    AT = os.environ['AT']
-    AS = os.environ['AS']
+# Twitterオブジェクトの生成
 
-    # Twitterオブジェクトの生成
+
+def twitterPost(AT,AS):
     auth = tweepy.OAuthHandler(CK, CS)
     auth.set_access_token(AT, AS)
 
     api = tweepy.API(auth)
-
+    S,SS,T,i = '','',15,1
     # 投稿時刻のフォーマット修正
     def date_handler(obj):
         return obj.isoformat() if hasattr(obj, 'isoformat') else obj
@@ -29,8 +30,9 @@ def twitterPost():
     pattern = 'https?://[\\w/:%#\\$&\\?\\(\\)~\\.=\\+\\-]+'
 
     list_ = []
-    i = 1
+    # i = 1
     #1ツイートずつループ
+    str_ = list
     for status in api.home_timeline():
         #デバッグ用
         #見映えのため区切る
@@ -52,24 +54,35 @@ def twitterPost():
             url = result.group()
 
         str_ = {
-        i:{
-            "name":status.user.name,
-            "text":status.text,
-            "id":status.id,
-            "time":date_handler(status.created_at + timedelta(hours=9)),
-            "favorite_count":status.favorite_count,
-            "retweet_count":status.retweet_count,
-            "URL":url
+        "name":status.user.name,
+        "text":status.text,
+        "id":status.id,
+        "time":date_handler(status.created_at + timedelta(hours=9)),
+        "favorite_count":status.favorite_count,
+        "retweet_count":status.retweet_count,
+        "URL":url
         }
-    }
+        if i == 1:
+            S = str_["time"]
+        elif i == 19:
+            SS = str_["time"]
+        i+=1
         #listに追加する
         list_.append(str_)
-        i += 1
         #JSON形式で出力
         
     # with open('./twitter.json', 'w') as f:
     #     json.dump(list_, f, ensure_ascii=False, indent=4)
 
     # print(type(list_))
-
-    return list_
+    S = int(S[12:16].replace(":",""))
+    SS = int(SS[12:16].replace(":",""))
+    if S < SS:
+        S += 2400
+    sum_s = S - SS
+    if sum_s > T:
+        sum_s = T
+    result = float((T-sum_s)/T) * 100
+    result = int(result)
+    #print(int(result))
+    return list_,result
