@@ -18,6 +18,9 @@ type TweetArray = {
 
 };
 
+let vortage: number = 0;
+let status_msg: string = '';
+
 
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
@@ -119,9 +122,23 @@ export function activate(context: vscode.ExtensionContext) {
 	const name = vscode.workspace.name;
 	//何かしらのファイルが開かれているときじゃないと、表示されないようにいする
 	if (name) {
+		if(vortage <= 20){
+			status_msg = 'very cold...'
+		}else if(vortage >= 20 && vortage <= 40){
+			status_msg = 'cold..'
+		}else if(vortage >= 40 && vortage <= 60){
+			status_msg = 'little hot'
+		}
+		else if(vortage >= 60 && vortage <= 80){
+			status_msg = 'hot'
+		}
+		else if(vortage >= 80 && vortage <= 100){
+			status_msg = 'very hot!'
+		}
 		//ここでステータスバーの文字列を指定している
-		myStatusBarItem.text = `${icon} Twitter`;
+		myStatusBarItem.text = `${icon} ` + status_msg;
 		myStatusBarItem.show();
+		
 	}
 	//ボタンを押された時にどんなコマンんどを実行するか記載する
 	const myCommandId = 'hiding-twitter-4.helloOriginal';
@@ -212,12 +229,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} ` + status_msg;
 				myStatusBarItem.show();
 			}, (error) => {
 				console.error("error:", error.message);
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} ` + status_msg;
 				myStatusBarItem.show();
 			});
 

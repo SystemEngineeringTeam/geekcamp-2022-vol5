@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const axios_1 = require("axios");
+let vortage = 0;
+let status_msg = '';
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -80,8 +82,23 @@ function activate(context) {
     const name = vscode.workspace.name;
     //何かしらのファイルが開かれているときじゃないと、表示されないようにいする
     if (name) {
+        if (vortage <= 20) {
+            status_msg = 'very cold...';
+        }
+        else if (vortage >= 20 && vortage <= 40) {
+            status_msg = 'cold..';
+        }
+        else if (vortage >= 40 && vortage <= 60) {
+            status_msg = 'little hot';
+        }
+        else if (vortage >= 60 && vortage <= 80) {
+            status_msg = 'hot';
+        }
+        else if (vortage >= 80 && vortage <= 100) {
+            status_msg = 'very hot!';
+        }
         //ここでステータスバーの文字列を指定している
-        myStatusBarItem.text = `${icon} Twitter`;
+        myStatusBarItem.text = `${icon} ` + status_msg;
         myStatusBarItem.show();
     }
     //ボタンを押された時にどんなコマンんどを実行するか記載する
@@ -153,12 +170,12 @@ function activate(context) {
                 const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
                 vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
                 //処理が終了したらステータスバーの見た目を元に戻す
-                myStatusBarItem.text = `${icon} Twitter`;
+                myStatusBarItem.text = `${icon} ` + status_msg;
                 myStatusBarItem.show();
             }, (error) => {
                 console.error("error:", error.message);
                 //処理が終了したらステータスバーの見た目を元に戻す
-                myStatusBarItem.text = `${icon} Twitter`;
+                myStatusBarItem.text = `${icon} ` + status_msg;
                 myStatusBarItem.show();
             });
         }
