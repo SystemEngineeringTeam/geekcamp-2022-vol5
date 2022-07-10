@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify #追加
+from flask import Flask, render_template, request, jsonify, redirect #追加
 from twitter import twitterPost
 from requests_oauthlib import OAuth1Session
 from dotenv import load_dotenv
@@ -6,45 +6,56 @@ import os
 from urllib.parse import parse_qsl
 import tweepy
 
-
-
-
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False #日本語文字化け対策
 app.config["JSON_SORT_KEYS"] = False #ソートをそのまま
-
+consumer_key = os.environ['CK']
+consumer_secret = os.environ['CS']
 
 @app.route('/get' ,methods=["GET"])
 def get():
-    # try:
-    #     req = request.args
-    #     get_number = req.get("get_number")
-    #     str = req.get("str")
-    # except:
-    #     return jsonify({
-    #         'status':'NO',
-    #         'error':'error'
-    #     })
+        base_url = 'https://api.twitter.com/'
+        access_token_url = base_url + 'oauth/access_token'
 
+        load_dotenv()
+        CK = os.environ['CK']
+        CS = os.environ['CS']
+        auth = tweepy.OAuthHandler(CK, CS)
+
+        req = request.args
+        OT = req.get("oauth_token")
+        OV = req.get("oauth_verifier")
+        ID = req.get("id")
+
+
+        #http://127.0.0.1:5000/authには、後ろにoauth_token と oauth_verifierがくっついて
+        #返されるので(URLパラメータ)以下の処理をする
+        #URLパラメータは request.args で利用できる。以下の例では、
+        #http://127.0.0.1:5000/auth?oauth_token=　の"="以降を取得できる
+        #defaultは、auth?以降がない場合の値を返すもの（例ではブランクを返す）
+
+
+        #URLから oauth_token を取り出して、auth.request_token[‘oauth_token’] にセット
+        auth.request_token['oauth_token'] = OT
+        #URLから、oauth_verifierを取り出して、oauth_token_secretにセット
+        auth.request_token['oauth_token_secret'] = OV
+        #ここの処理は調べきれてません
+        auth.get_access_token(OV)
+        #アクセストークンと、アクセルトークンシークレットをセット（通常のtweepyでツイートする処理と同様）
+
+        AT = auth.access_token
+        AS = auth.access_token_secret
+
+        print("keys")
+        print(AT)
+        print(AS)
+
+        lists = twitterPost(AT,AS)
     
-
-    try:
-        lists = twitterPost()
-    except:
-        return jsonify({
-            'status':'NO',
-            'error':'対応していない単語が使用されました'
-        })
-
-    print(type(lists))
-
-    for i in lists:
-        print(i)
-    
-    print(jsonify(lists))
+        print(jsonify(lists))
 
 
-    return jsonify(lists)
+        return jsonify(lists)
 
 @app.route('/twitter/request_token', methods=['GET'])
 def get_twitter_request_token():
@@ -67,7 +78,11 @@ def get_twitter_request_token():
 
     print("認証URL:", f"{authenticate_url}?oauth_token={oauth_token}")
 
-    return f"{authenticate_url}?oauth_token={oauth_token}"
+    url = f"{authenticate_url}?oauth_token={oauth_token}"
+
+    return jsonify({
+            'url': url
+        })
 
 @app.route('/redirect', methods=['GET'])
 def get_twitter_redirect():
@@ -77,16 +92,125 @@ def get_twitter_redirect():
         oauthVerifier = req.get("oauth_verifier")
     except:
         return jsonify({
-            'status':'NO',
+            'status': False,
             'error':'error'
         })
 
-    return jsonify({
-            'status':'NO',
-            'oauthToken':oauthToken,
-            'oauthVerifier':oauthVerifier,
+    return redirect(f'vscode://Sysken.hiding-twitter-4?oauth_token={oauthToken}&oauth_verifier={oauthVerifier}')
+
+@app.route('/favorite' ,methods=["GET"])
+def twitter_favorite():
+    # try:
+        base_url = 'https://api.twitter.com/'
+        access_token_url = base_url + 'oauth/access_token'
+
+        load_dotenv()
+        CK = os.environ['CK']
+        CS = os.environ['CS']
+        auth = tweepy.OAuthHandler(CK, CS)
+
+        req = request.args
+        OT = req.get("oauth_token")
+        OV = req.get("oauth_verifier")
+        ID = req.get("id")
+
+
+        #http://127.0.0.1:5000/authには、後ろにoauth_token と oauth_verifierがくっついて
+        #返されるので(URLパラメータ)以下の処理をする
+        #URLパラメータは request.args で利用できる。以下の例では、
+        #http://127.0.0.1:5000/auth?oauth_token=　の"="以降を取得できる
+        #defaultは、auth?以降がない場合の値を返すもの（例ではブランクを返す）
+
+
+        #URLから oauth_token を取り出して、auth.request_token[‘oauth_token’] にセット
+        auth.request_token['oauth_token'] = OT
+        #URLから、oauth_verifierを取り出して、oauth_token_secretにセット
+        auth.request_token['oauth_token_secret'] = OV
+        #ここの処理は調べきれてません
+        auth.get_access_token(OV)
+        #アクセストークンと、アクセルトークンシークレットをセット（通常のtweepyでツイートする処理と同様）
+
+        AT = auth.access_token
+        AS = auth.access_token_secret
+        
+        print("keys")
+        print(AT)
+        print(AS)
+
+        auth.set_access_token(auth.access_token,auth.access_token_secret)
+        api = tweepy.API(auth)
+        # api.update_status("テスト")
+
+        try:
+            api.create_favorite(ID)
+        except tweepy.error.TweepError as e:
+            print(e)
+
+
+        # auth.request_token = { 'oauth_token' : OT,'oauth_token_secret' : OV }
+
+        # auth.get_access_token(OV)
+
+
+        # try:
+        #     auth.get_access_token(OV)
+        # except tweepy.TweepError:
+        #     print ('Error! Failed to get access token.')
+
+
+        
+
+        # auth = tweepy.OAuthHandler(CK, CS)
+        # auth.set_access_token(AT, AS)
+        # api = tweepy.API(auth)
+
+        # api.create_favorite(ID)
+
+        
+    # except:
+        return jsonify({
+            'status':False,
+            'error':'error'
         })
 
+        #  # try:
+        # req = request.args
+        # ck = req.get("oauth_token")
+        # cs = req.get("oauth_verifier")
+        # ID = req.get("id")
+
+        # print(ck)
+        # print(cs)
+        # print(ID)
+
+        # access_token_url = 'https://api.twitter.com/oauth/access_token'
+
+        # #OAuth認証でアクセストークンを取得
+
+        # print(res)
+
+        # #アクセストークンを取り出す
+        # AT = res.get('oauth_token')
+        # AS = res.get('oauth_token_secret')
+
+        # print(AT)
+        # print(AS)
+
+        # #TwitterBOTのテスト
+        # #Pythonという文字列を含むツイートをふぁぼる
+
+    # except:
+    #     return jsonify({
+    #         'status':False,
+    #         'error':'error'
+    #     })
+
+#     return jsonify({
+#             'status':True,
+#             'oauthToken':oauthToken,
+#             'oauthVerifier':oauthVerifier,
+#             'id':ID
+#         })
 
 @app.route('/')
 def index():
