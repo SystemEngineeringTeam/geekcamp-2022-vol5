@@ -1,4 +1,5 @@
 {
+	"publisher": "Sysken",
 	"name": "hiding-twitter-4",
 	"displayName": "hiding-twitter-4",
 	"description": "",
@@ -13,45 +14,72 @@
 		"onCommand:hiding-twitter-4.helloWorld",
 		"onCommand:hiding-twitter-4.helloOriginal",
 		"onCommand:hiding-twitter-4.getJson",
+		"onCommand:hiding-twitter-4.test",
 		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
-		{
-			"command": "hiding-twitter-4.helloWorld",
-			"title": "Hello World"
-		},
-		{
-			"command": "hiding-twitter-4.helloOriginal",
-			"title": "call Original"
-		},
-		{
-			"command": "hiding-twitter-4.getJson",
-			"title": "getJson",
-			"icon": {
-			"dark": "./img/fire.gif",
-			"light": "./img/setting.svg"
+		"configuration": {
+			"type": "object",
+			"title": "oauth",
+			"properties": {
+				"hiding-twitter-4.oauth_token": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Path to the git executable",
+					"default": ""
+				},
+				"hiding-twitter-4.oauth_verifier": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Path to the git executable",
+					"default": ""
+				}
 			}
-		}
+		},
+		"commands": [
+			{
+				"command": "hiding-twitter-4.test",
+				"title": "testCome"
+			},
+			{
+				"command": "hiding-twitter-4.helloWorld",
+				"title": "Hello World"
+			},
+			{
+				"command": "hiding-twitter-4.helloOriginal",
+				"title": "call Original"
+			},
+			{
+				"command": "hiding-twitter-4.getJson",
+				"title": "getJson",
+				"icon": {
+					"dark": "./img/fire.gif",
+					"light": "./img/setting.svg"
+				}
+			}
 		],
 		"menus": {
-		"editor/title": [
-			{
-			"when": "",
-			"command": "hiding-twitter-4.getJson",
-			"group": "navigation"
-			}
-		]
+			"editor/title": [
+				{
+					"when": "",
+					"command": "hiding-twitter-4.getJson",
+					"group": "navigation"
+				}
+			]
 		},
 		"icons": {
-		"icon-fire": {
-			"description": "Ubuntu icon",
-			"default": {
-			"fontPath": "./img/icomoon.woff",
-		"fontCharacter": "\\E9A9"
+			"icon-fire": {
+				"description": "Ubuntu icon",
+				"default": {
+					"fontPath": "./img/icomoon.woff",
+					"fontCharacter": "\\E9A9"
+				}
 			}
-	}
 		}
 	},
 	"scripts": {
@@ -76,6 +104,7 @@
 		"typescript": "^4.7.4"
 	},
 	"dependencies": {
-		"axios": "^0.27.2"
+		"axios": "^0.27.2",
+		"vsce": "^2.9.2"
 	}
 }
