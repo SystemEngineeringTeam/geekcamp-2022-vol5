@@ -70,6 +70,47 @@ async function getPass(oauthToken="", oauthVerifier=""): Promise<string> {
 	
 }
 
+type Result = {
+	result: number;
+
+};
+
+//実際にApiを叩く部分
+//async:非同期通信で別の場所で作業して結果だけメインに送る
+//Promise型:非同期処理が完了した時結果を返したり、エラーを送る
+async function getResult(oauthToken="", oauthVerifier=""): Promise<number> {
+	try{
+		const request = "?oauth_token=" + oauthToken + "&oauth_verifier=" + oauthVerifier;
+
+		//ここで、Apiを叩いて、パースもしてくれている
+		const { data, status } = await axios.get<Result>(
+			//本番はこのURLも変える
+				'http://setwitter.harutiro.net:5001/result'+request,
+				{
+					//受け取るデータの情報
+					headers: {
+					Accept: 'application/json',
+				},
+			},
+		);
+
+
+
+		console.log('response status is: ', status);
+
+		//JSONに受け取ったデータを書き出す
+		//JSON.stringify()は、JavaScriptオブジェクトを取得し、JSON 文字列に変換します
+		//1つ目は出力したいデータで、2つ目は文字列または数値を、返された文字列のスペース（インデント）として使用します
+		return data.result;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		return -1;
+	}
+	
+}
+
 type token = {
 	url: string;
 
@@ -185,14 +226,29 @@ export function activate(context: vscode.ExtensionContext) {
 		//ここは、1秒に一回時間取得を読んでくれる部分
 		//本番では、2分に一回盛り上がり度を取得するコードに変更する
 		//２分に一回APIを呼び出すように変更
-		var item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
 		let printDate = function () {
-			var date = new Date();
-			item.text = date.getHours().toString() + ":" + date.getMinutes().toString() + ":" + date.getSeconds().toString();
-			item.show();
+
+			const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
+			vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+			vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+
+			const getresult = getResult(conf.get('oauth_token'),conf.get('oauth_verifier'));
+
+			getresult.then(result => {
+
+				if (name) {
+					//ここでステータスバーの文字列を指定している
+					myStatusBarItem.text = `${icon} Twitter ${result}%`;
+					myStatusBarItem.show();
+				}
+
+			}, (error) => {
+				console.log(error);
+			});
 		};
 		//ここで間隔を指定している
 		setInterval(printDate,120000);
+		printDate();
 
 		vscode.window.showInformationMessage('Hello World from hiding-twitter-4!');
 	});
