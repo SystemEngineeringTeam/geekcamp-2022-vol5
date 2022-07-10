@@ -74,15 +74,15 @@ def twitterPost(AT,AS):
     # with open('./twitter.json', 'w') as f:
     #     json.dump(list_, f, ensure_ascii=False, indent=4)
 
-    # print(type(list_))
-    S = int(S[12:16].replace(":",""))
-    SS = int(SS[12:16].replace(":",""))
-    if S < SS:
-        S += 2400
-    sum_s = S - SS
-    if sum_s > T:
-        sum_s = T
-    result = float((T-sum_s)/T) * 100
-    result = int(result)
+    # # print(type(list_))
+    # S = int(S[12:16].replace(":",""))
+    # SS = int(SS[12:16].replace(":",""))
+    # if S < SS:
+    #     S += 2400
+    # sum_s = S - SS
+    # if sum_s > T:
+    #     sum_s = T
+    # result = float((T-sum_s)/T) * 100
+    # result = int(result)
     #print(int(result))
     return list_,result

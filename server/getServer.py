@@ -120,7 +120,7 @@ def get_twitter_redirect():
             'error':'error'
         })
 
-    return redirect(f'vscode://sysken.hiding-twitter-4?oauth_token={AT}&oauth_verifier={AS}')
+    return redirect(f'vscode://sysken.hiding-twitter?oauth_token={AT}&oauth_verifier={AS}')
 
 
 
