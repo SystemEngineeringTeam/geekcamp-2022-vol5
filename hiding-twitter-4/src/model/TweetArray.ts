@@ -1,0 +1,4 @@
+type TweetArray = {
+	data: Tweet[];
+
+};

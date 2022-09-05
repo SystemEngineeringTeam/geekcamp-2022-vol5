@@ -1,0 +1,4 @@
+type Result = {
+	result: number;
+
+};
