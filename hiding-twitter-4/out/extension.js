@@ -15,16 +15,15 @@ async function getPass(oauthToken = "", oauthVerifier = "") {
         'http://setwitter.harutiro.net:5001/get' + request, {
             //受け取るデータの情報
             headers: {
-                Accept: 'application/json',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json'
             },
         });
         //パースしたデータを逆にJsonに戻している
         //JSON.stringify()は、JavaScriptオブジェクトを取得し、JSON 文字列に変換します
         //1つ目は出力したいデータで、2つ目は文字列または数値を、返された文字列のスペース（インデント）として使用します
-        console.log("fuck you!");
         console.log(JSON.stringify(data, null, 4));
         //パースしたデータをコンソールに流す
-        console.log("fuck you!");
         console.log(data.data);
         //APiを取得した時の状態を表示してくれている
         //成功したら200を返してくれる。
@@ -54,7 +53,8 @@ async function getResult(oauthToken = "", oauthVerifier = "") {
         'http://setwitter.harutiro.net:5001/result' + request, {
             //受け取るデータの情報
             headers: {
-                Accept: 'application/json',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json'
             },
         });
         console.log('response status is: ', status);
@@ -80,7 +80,8 @@ async function getToken() {
         'http://setwitter.harutiro.net:5001/twitter/request_token', {
             //受け取るデータの情報
             headers: {
-                Accept: 'application/json',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json'
             },
         });
         //APiを取得した時の状態を表示してくれている
@@ -111,7 +112,8 @@ async function setFavorite(oauthToken = "", oauthVerifier = "", tweetId = 0) {
         'http://setwitter.harutiro.net:5001/favorite' + request, {
             //受け取るデータの情報
             headers: {
-                Accept: 'application/json',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json'
             },
         });
         //APiを取得した時の状態を表示してくれている
@@ -145,21 +147,25 @@ function activate(context) {
         myStatusBarItem.show();
     }
     //ボタンを押された時にどんなコマンんどを実行するか記載する
-    const myCommandId = 'hiding-twitter-4.helloOriginal';
+    const myCommandId = 'hiding-twitter-4.getTimeLine';
     myStatusBarItem.command = myCommandId;
     //マウスをかざした時のヒントを表示する
-    myStatusBarItem.tooltip = `status bar item tooltip`;
+    myStatusBarItem.tooltip = `TLの取得`;
     context.subscriptions.push(myStatusBarItem);
     console.log('Congratulations, your extension "hiding-twitter-4" is now active!');
-    let disposable = vscode.commands.registerCommand('hiding-twitter-4.helloWorld', () => {
+    //================================================================================
+    //盛り上がり度の取得
+    //================================================================================
+    let getExcitement = vscode.commands.registerCommand('hiding-twitter-4.getExcitement', () => {
         //ここは、1秒に一回時間取得を読んでくれる部分
         //本番では、2分に一回盛り上がり度を取得するコードに変更する
         //２分に一回APIを呼び出すように変更
         let printDate = function () {
             const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-            vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-            vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+            // vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+            // vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
             const getresult = getResult(conf.get('oauth_token'), conf.get('oauth_verifier'));
+            vscode.window.showInformationMessage('盛り上がりどの取得');
             getresult.then(result => {
                 if (name) {
                     //ここでステータスバーの文字列を指定している
@@ -171,13 +177,14 @@ function activate(context) {
             });
         };
         //ここで間隔を指定している
-        setInterval(printDate, 120000);
+        setInterval(printDate, 10000);
         printDate();
-        vscode.window.showInformationMessage('Hello World from hiding-twitter-4!');
     });
-    context.subscriptions.push(disposable);
-    //
-    let getJson = vscode.commands.registerCommand('hiding-twitter-4.getJson', () => {
+    context.subscriptions.push(getExcitement);
+    //================================================================================
+    //ログイン部分
+    //================================================================================
+    let getLoginToken = vscode.commands.registerCommand('hiding-twitter-4.getLoginToken', () => {
         //上のメラメラアイコンを押した時にJSonを取得するコード
         const geturl = getToken();
         geturl.then(url => {
@@ -185,14 +192,16 @@ function activate(context) {
         }, (error) => {
             console.log(error);
         });
-        vscode.window.showInformationMessage('Jsonを取得するよ');
     });
     //contextで指定されたアクションを起こした時に関数を呼び出す
-    context.subscriptions.push(getJson);
-    let test = vscode.commands.registerCommand('hiding-twitter-4.test', () => {
+    context.subscriptions.push(getLoginToken);
+    //================================================================================
+    //いいね機能
+    //================================================================================
+    let postFavorite = vscode.commands.registerCommand('hiding-twitter-4.postFavorite', () => {
         const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-        vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-        vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+        // vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+        // vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
         const hello = setFavorite(conf.get('oauth_token'), conf.get('oauth_verifier'), 1545914408152359000);
         hello.then(data => {
             vscode.window.showInformationMessage(data);
@@ -201,12 +210,14 @@ function activate(context) {
             console.log(error);
         });
     });
-    context.subscriptions.push(test);
-    //helloOriginal
-    let helloOriginal = vscode.commands.registerCommand('hiding-twitter-4.helloOriginal', () => {
+    context.subscriptions.push(postFavorite);
+    //================================================================================
+    //TLの取得
+    //================================================================================
+    let getTimeLine = vscode.commands.registerCommand('hiding-twitter-4.getTimeLine', () => {
         const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-        vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-        vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+        // vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+        // vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
         //ワークスペースが開かれていない時に動くとエラーが出るので、IF文を用いる
         if (name) {
             //ボタンを押された時に表示を変更したいため、ここでもTextを変更させる
@@ -243,23 +254,23 @@ function activate(context) {
                 myStatusBarItem.show();
             });
         }
-        vscode.window.showInformationMessage('JsonをTextに貼り付けたよ');
     });
-    context.subscriptions.push(helloOriginal);
+    context.subscriptions.push(getTimeLine);
     const handleUri = (uri) => {
         const queryParams = new URLSearchParams(uri.query);
         if (queryParams.has('oauth_token')) {
-            vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_token')}`);
+            // vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_token') as string}`);
             const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
             const setAsGlobal = (settings.inspect("oauth_token").workspaceValue === undefined);
             settings.update("oauth_token", queryParams.get('oauth_token'), setAsGlobal); // myParamをhogeに変更
         }
         if (queryParams.has('oauth_verifier')) {
-            vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_verifier')}`);
+            // vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_verifier') as string}`);
             const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
             const setAsGlobal = (settings.inspect("oauth_verifier").workspaceValue === undefined);
             settings.update("oauth_verifier", queryParams.get('oauth_verifier'), setAsGlobal); // myParamをhogeに変更
         }
+        vscode.window.showInformationMessage(`ログインしました。`);
     };
     context.subscriptions.push(vscode.window.registerUriHandler({
         handleUri
