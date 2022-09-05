@@ -2,24 +2,6 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 
 
-// ApiからJsonをもらう時に、型を指定する
-//ここは受け取るデータによって変える
-type Tweet ={
-	name           : string,
-	text           : string,
-	id             : number,
-	time           : string,
-	favorite_count : number,
-	retweet_count  : number
-	
-};
-
-type TweetArray = {
-	data: Tweet[];
-
-};
-
-
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -70,11 +52,6 @@ async function getPass(oauthToken="", oauthVerifier=""): Promise<string> {
 	
 }
 
-type Result = {
-	result: number;
-
-};
-
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -111,10 +88,7 @@ async function getResult(oauthToken="", oauthVerifier=""): Promise<number> {
 	
 }
 
-type token = {
-	url: string;
 
-};
 
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
@@ -122,7 +96,7 @@ type token = {
 async function getToken(): Promise<string> {
 	try{
 		//ここで、Apiを叩いて、パースもしてくれている
-		const { data, status } = await axios.get<token>(
+		const { data, status } = await axios.get<Token>(
 			//本番はこのURLも変える
 				'http://setwitter.harutiro.net:5001/twitter/request_token',
 				{
@@ -164,7 +138,7 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 
 		const request = "?oauth_token=" + oauthToken + "&oauth_verifier=" + oauthVerifier + "&id=" + tweetId;
 
-		const { data, status } = await axios.get<token>(
+		const { data, status } = await axios.get<Token>(
 			//本番はこのURLも変える
 				'http://setwitter.harutiro.net:5001/favorite'+request,
 				{
