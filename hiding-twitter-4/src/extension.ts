@@ -17,7 +17,8 @@ async function getPass(oauthToken="", oauthVerifier=""): Promise<string> {
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
@@ -66,7 +67,8 @@ async function getResult(oauthToken="", oauthVerifier=""): Promise<number> {
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
@@ -102,7 +104,8 @@ async function getToken(): Promise<string> {
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
@@ -144,7 +147,8 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
