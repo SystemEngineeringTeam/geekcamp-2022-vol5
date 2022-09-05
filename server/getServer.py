@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect #追加
-from twitter import twitterPost
+from twitter import getTwitterTimeLine
 from requests_oauthlib import OAuth1Session
 from dotenv import load_dotenv
 import os
@@ -20,7 +20,7 @@ def get():
         AS = req.get("oauth_verifier")
         ID = req.get("id")
 
-        lists , result = twitterPost(AT,AS)
+        lists , result = getTwitterTimeLine(AT,AS)
     
         print(jsonify(lists))
 
@@ -36,7 +36,7 @@ def result():
         AS = req.get("oauth_verifier")
         ID = req.get("id")
 
-        lists , result = twitterPost(AT,AS)
+        lists , result = getTwitterTimeLine(AT,AS)
     
         print(jsonify(lists))
 

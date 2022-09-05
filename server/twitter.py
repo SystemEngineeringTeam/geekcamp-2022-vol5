@@ -16,7 +16,7 @@ CS = os.environ['CS']
 # Twitterオブジェクトの生成
 
 
-def twitterPost(AT,AS):
+def getTwitterTimeLine(AT,AS):
     auth = tweepy.OAuthHandler(CK, CS)
     auth.set_access_token(AT, AS)
 
@@ -52,6 +52,8 @@ def twitterPost(AT,AS):
         url = ' '
         if result:
             url = result.group()
+
+        print(status)
 
         str_ = {
         "name":status.user.name,
