@@ -172,6 +172,40 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 	
 }
 
+//================================================================================
+//盛り上がり度の取得
+//================================================================================
+function getExcitement(myStatusBarItem: vscode.StatusBarItem,name:string|undefined,icon: "$(debug)" | "$(icon-fire)"){
+		//ここは、1秒に一回時間取得を読んでくれる部分
+		//本番では、2分に一回盛り上がり度を取得するコードに変更する
+		//２分に一回APIを呼び出すように変更
+		let printDate = function () {
+
+			const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
+			// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+			// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+
+			const getresult = getResult(conf.get('oauth_token'),conf.get('oauth_verifier'));
+
+			vscode.window.showInformationMessage('盛り上がりどの取得');
+
+			getresult.then(result => {
+
+				if (name) {
+					//ここでステータスバーの文字列を指定している
+					myStatusBarItem.text = `${icon} Twitter ${result}%`;
+					myStatusBarItem.show();
+				}
+
+			}, (error) => {
+				console.log(error);
+			});
+		};
+		//ここで間隔を指定している
+		setInterval(printDate,10000);
+		printDate();
+}
+
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -201,37 +235,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//================================================================================
 	//盛り上がり度の取得
 	//================================================================================
-	let getExcitement = vscode.commands.registerCommand('hiding-twitter-4.getExcitement', () => {
-		//ここは、1秒に一回時間取得を読んでくれる部分
-		//本番では、2分に一回盛り上がり度を取得するコードに変更する
-		//２分に一回APIを呼び出すように変更
-		let printDate = function () {
-
-			const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-			// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-			// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
-
-			const getresult = getResult(conf.get('oauth_token'),conf.get('oauth_verifier'));
-
-			vscode.window.showInformationMessage('盛り上がりどの取得');
-
-			getresult.then(result => {
-
-				if (name) {
-					//ここでステータスバーの文字列を指定している
-					myStatusBarItem.text = `${icon} Twitter ${result}%`;
-					myStatusBarItem.show();
-				}
-
-			}, (error) => {
-				console.log(error);
-			});
-		};
-		//ここで間隔を指定している
-		setInterval(printDate,10000);
-		printDate();
-	});
-	context.subscriptions.push(getExcitement);
+	// getExcitement(myStatusBarItem,name,icon);
 
 
 	//================================================================================
