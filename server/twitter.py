@@ -53,7 +53,13 @@ def getTwitterTimeLine(AT,AS):
         if result:
             url = result.group()
 
-        print(status)
+
+
+        img_urls = []
+        if 'media' in status.entities:
+  	        for media in status.extended_entities['media']:
+  	            media_url = media['media_url']
+  	            img_urls.append(media_url)
 
         str_ = {
         "name":status.user.name,
@@ -62,7 +68,7 @@ def getTwitterTimeLine(AT,AS):
         "time":date_handler(status.created_at + timedelta(hours=9)),
         "favorite_count":status.favorite_count,
         "retweet_count":status.retweet_count,
-        "URL":url
+        "image":img_urls
         }
         if i == 1:
             S = str_["time"]
