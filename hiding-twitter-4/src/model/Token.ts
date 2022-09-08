@@ -1,0 +1,4 @@
+type Token = {
+	url: string;
+
+};
