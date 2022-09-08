@@ -2,24 +2,6 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 
 
-// ApiからJsonをもらう時に、型を指定する
-//ここは受け取るデータによって変える
-type Tweet ={
-	name           : string,
-	text           : string,
-	id             : number,
-	time           : string,
-	favorite_count : number,
-	retweet_count  : number
-	
-};
-
-type TweetArray = {
-	data: Tweet[];
-
-};
-
-
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -35,7 +17,8 @@ async function getPass(oauthToken="", oauthVerifier=""): Promise<string> {
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
@@ -43,11 +26,9 @@ async function getPass(oauthToken="", oauthVerifier=""): Promise<string> {
 		//パースしたデータを逆にJsonに戻している
 		//JSON.stringify()は、JavaScriptオブジェクトを取得し、JSON 文字列に変換します
 		//1つ目は出力したいデータで、2つ目は文字列または数値を、返された文字列のスペース（インデント）として使用します
-		console.log("fuck you!");
 		console.log(JSON.stringify(data, null, 4));
 
 		//パースしたデータをコンソールに流す
-		console.log("fuck you!");
 		console.log(data.data);
 
 		//APiを取得した時の状態を表示してくれている
@@ -70,11 +51,6 @@ async function getPass(oauthToken="", oauthVerifier=""): Promise<string> {
 	
 }
 
-type Result = {
-	result: number;
-
-};
-
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -89,7 +65,8 @@ async function getResult(oauthToken="", oauthVerifier=""): Promise<number> {
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
@@ -111,10 +88,7 @@ async function getResult(oauthToken="", oauthVerifier=""): Promise<number> {
 	
 }
 
-type token = {
-	url: string;
 
-};
 
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
@@ -122,13 +96,14 @@ type token = {
 async function getToken(): Promise<string> {
 	try{
 		//ここで、Apiを叩いて、パースもしてくれている
-		const { data, status } = await axios.get<token>(
+		const { data, status } = await axios.get<Token>(
 			//本番はこのURLも変える
 				'http://setwitter.harutiro.net:5001/twitter/request_token',
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
@@ -164,13 +139,14 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 
 		const request = "?oauth_token=" + oauthToken + "&oauth_verifier=" + oauthVerifier + "&id=" + tweetId;
 
-		const { data, status } = await axios.get<token>(
+		const { data, status } = await axios.get<Token>(
 			//本番はこのURLも変える
 				'http://setwitter.harutiro.net:5001/favorite'+request,
 				{
 					//受け取るデータの情報
 					headers: {
-					Accept: 'application/json',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
 				},
 			},
 		);
@@ -196,6 +172,40 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 	
 }
 
+//================================================================================
+//盛り上がり度の取得
+//================================================================================
+function getExcitement(myStatusBarItem: vscode.StatusBarItem,name:string|undefined,icon: "$(debug)" | "$(icon-fire)"){
+		//ここは、1秒に一回時間取得を読んでくれる部分
+		//本番では、2分に一回盛り上がり度を取得するコードに変更する
+		//２分に一回APIを呼び出すように変更
+		let printDate = function () {
+
+			const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
+			// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+			// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+
+			const getresult = getResult(conf.get('oauth_token'),conf.get('oauth_verifier'));
+
+			vscode.window.showInformationMessage('盛り上がりどの取得');
+
+			getresult.then(result => {
+
+				if (name) {
+					//ここでステータスバーの文字列を指定している
+					myStatusBarItem.text = `${icon} Twitter ${result}%`;
+					myStatusBarItem.show();
+				}
+
+			}, (error) => {
+				console.log(error);
+			});
+		};
+		//ここで間隔を指定している
+		setInterval(printDate,10000);
+		printDate();
+}
+
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -212,51 +222,26 @@ export function activate(context: vscode.ExtensionContext) {
 		myStatusBarItem.show();
 	}
 	//ボタンを押された時にどんなコマンんどを実行するか記載する
-	const myCommandId = 'hiding-twitter-4.helloOriginal';
+	const myCommandId = 'hiding-twitter-4.getTimeLine';
 	myStatusBarItem.command = myCommandId;
 	//マウスをかざした時のヒントを表示する
-	myStatusBarItem.tooltip = `status bar item tooltip`;
+	myStatusBarItem.tooltip = `TLの取得`;
 	context.subscriptions.push(myStatusBarItem);
 
 
 	
 	console.log('Congratulations, your extension "hiding-twitter-4" is now active!');
 
-	let disposable = vscode.commands.registerCommand('hiding-twitter-4.helloWorld', () => {
-		//ここは、1秒に一回時間取得を読んでくれる部分
-		//本番では、2分に一回盛り上がり度を取得するコードに変更する
-		//２分に一回APIを呼び出すように変更
-		let printDate = function () {
-
-			const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-			vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-			vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
-
-			const getresult = getResult(conf.get('oauth_token'),conf.get('oauth_verifier'));
-
-			getresult.then(result => {
-
-				if (name) {
-					//ここでステータスバーの文字列を指定している
-					myStatusBarItem.text = `${icon} Twitter ${result}%`;
-					myStatusBarItem.show();
-				}
-
-			}, (error) => {
-				console.log(error);
-			});
-		};
-		//ここで間隔を指定している
-		setInterval(printDate,120000);
-		printDate();
-
-		vscode.window.showInformationMessage('Hello World from hiding-twitter-4!');
-	});
-	context.subscriptions.push(disposable);
+	//================================================================================
+	//盛り上がり度の取得
+	//================================================================================
+	// getExcitement(myStatusBarItem,name,icon);
 
 
-	//
-	let getJson = vscode.commands.registerCommand('hiding-twitter-4.getJson', () => {
+	//================================================================================
+	//ログイン部分
+	//================================================================================
+	let getLoginToken = vscode.commands.registerCommand('hiding-twitter-4.getLoginToken', () => {
 		//上のメラメラアイコンを押した時にJSonを取得するコード
 		const geturl = getToken();
 
@@ -265,15 +250,18 @@ export function activate(context: vscode.ExtensionContext) {
 		}, (error) => {
 			console.log(error);
 		});
-		vscode.window.showInformationMessage('Jsonを取得するよ');
 	});
 	//contextで指定されたアクションを起こした時に関数を呼び出す
-	context.subscriptions.push(getJson);
+	context.subscriptions.push(getLoginToken);
 
-	let test = vscode.commands.registerCommand('hiding-twitter-4.test', () => {
+
+	//================================================================================
+	//いいね機能
+	//================================================================================
+	let postFavorite = vscode.commands.registerCommand('hiding-twitter-4.postFavorite', () => {
 		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-		vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-		vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
 
 
 		const hello = setFavorite(conf.get('oauth_token'),conf.get('oauth_verifier'),1545914408152359000);
@@ -287,14 +275,16 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	});
-	context.subscriptions.push(test);
+	context.subscriptions.push(postFavorite);
 
-	//helloOriginal
-	let helloOriginal = vscode.commands.registerCommand('hiding-twitter-4.helloOriginal', () => {
+	//================================================================================
+	//TLの取得
+	//================================================================================
+	let getTimeLine = vscode.commands.registerCommand('hiding-twitter-4.getTimeLine', () => {
 
 		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
-		vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
-		vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
+		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
+		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
 		//ワークスペースが開かれていない時に動くとエラーが出るので、IF文を用いる
 		if (name) {
 			//ボタンを押された時に表示を変更したいため、ここでもTextを変更させる
@@ -330,6 +320,7 @@ export function activate(context: vscode.ExtensionContext) {
 				//処理が終了したらステータスバーの見た目を元に戻す
 				myStatusBarItem.text = `${icon} Twitter`;
 				myStatusBarItem.show();
+
 			}, (error) => {
 				console.error("error:", error.message);
 				//処理が終了したらステータスバーの見た目を元に戻す
@@ -342,27 +333,29 @@ export function activate(context: vscode.ExtensionContext) {
 
 		
 
-		vscode.window.showInformationMessage('JsonをTextに貼り付けたよ');
 	});
-	context.subscriptions.push(helloOriginal);
+	context.subscriptions.push(getTimeLine);
 
 
 	const handleUri = (uri: vscode.Uri) => {
 		const queryParams = new URLSearchParams(uri.query);
 		if (queryParams.has('oauth_token')) {
-			vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_token') as string}`);
+			// vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_token') as string}`);
 
 			const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
 			const setAsGlobal = (settings.inspect("oauth_token")!.workspaceValue === undefined);
 			settings.update("oauth_token",queryParams.get('oauth_token') ,setAsGlobal); // myParamをhogeに変更
 		}
 		if (queryParams.has('oauth_verifier')) {
-			vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_verifier') as string}`);
+			// vscode.window.showInformationMessage(`URI Handler says: ${queryParams.get('oauth_verifier') as string}`);
 
 			const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
 			const setAsGlobal = (settings.inspect("oauth_verifier")!.workspaceValue === undefined);
 			settings.update("oauth_verifier",queryParams.get('oauth_verifier') ,setAsGlobal); // myParamをhogeに変更
 		}
+
+		vscode.window.showInformationMessage(`ログインしました。`);
+
 	};
 	context.subscriptions.push(
 		vscode.window.registerUriHandler({

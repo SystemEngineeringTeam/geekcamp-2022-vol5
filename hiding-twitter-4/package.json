@@ -12,10 +12,10 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:hiding-twitter-4.helloWorld",
-		"onCommand:hiding-twitter-4.helloOriginal",
-		"onCommand:hiding-twitter-4.getJson",
-		"onCommand:hiding-twitter-4.test",
+		"onCommand:hiding-twitter-4.getExcitement",
+		"onCommand:hiding-twitter-4.getTimeLine",
+		"onCommand:hiding-twitter-4.getLoginToken",
+		"onCommand:hiding-twitter-4.postFavorite",
 		"*"
 	],
 	"main": "./out/extension.js",
@@ -44,20 +44,20 @@
 		},
 		"commands": [
 			{
-				"command": "hiding-twitter-4.test",
-				"title": "testCome"
+				"command": "hiding-twitter-4.postFavorite",
+				"title": "いいねをする"
 			},
 			{
-				"command": "hiding-twitter-4.helloWorld",
-				"title": "Hello World"
+				"command": "hiding-twitter-4.getExcitement",
+				"title": "盛り上がり度の取得"
 			},
 			{
-				"command": "hiding-twitter-4.helloOriginal",
-				"title": "call Original"
+				"command": "hiding-twitter-4.getTimeLine",
+				"title": "タイムラインの取得"
 			},
 			{
-				"command": "hiding-twitter-4.getJson",
-				"title": "getJson",
+				"command": "hiding-twitter-4.getLoginToken",
+				"title": "ログイン",
 				"icon": {
 					"dark": "./img/fire.gif",
 					"light": "./img/setting.svg"
@@ -68,7 +68,7 @@
 			"editor/title": [
 				{
 					"when": "",
-					"command": "hiding-twitter-4.getJson",
+					"command": "hiding-twitter-4.getLoginToken",
 					"group": "navigation"
 				}
 			]

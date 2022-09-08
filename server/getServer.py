@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect #追加
-from twitter import getTwitterTimeLine
+from twitter import twitterPost
 from requests_oauthlib import OAuth1Session
 from dotenv import load_dotenv
 import os
@@ -20,7 +20,7 @@ def get():
         AS = req.get("oauth_verifier")
         ID = req.get("id")
 
-        lists , result = getTwitterTimeLine(AT,AS)
+        lists , result = twitterPost(AT,AS)
     
         print(jsonify(lists))
 
@@ -36,7 +36,7 @@ def result():
         AS = req.get("oauth_verifier")
         ID = req.get("id")
 
-        lists , result = getTwitterTimeLine(AT,AS)
+        lists , result = twitterPost(AT,AS)
     
         print(jsonify(lists))
 
@@ -142,16 +142,78 @@ def twitter_favorite():
 
         auth.set_access_token(auth.access_token,auth.access_token_secret)
         api = tweepy.API(auth)
+        # api.update_status("テスト")
 
         try:
             api.create_favorite(ID)
         except tweepy.error.TweepError as e:
             print(e)
 
+
+        # auth.request_token = { 'oauth_token' : OT,'oauth_token_secret' : OV }
+
+        # auth.get_access_token(OV)
+
+
+        # try:
+        #     auth.get_access_token(OV)
+        # except tweepy.TweepError:
+        #     print ('Error! Failed to get access token.')
+
+
+        
+
+        # auth = tweepy.OAuthHandler(CK, CS)
+        # auth.set_access_token(AT, AS)
+        # api = tweepy.API(auth)
+
+        # api.create_favorite(ID)
+
+        
+    # except:
         return jsonify({
             'status':False,
             'error':'error'
         })
+
+        #  # try:
+        # req = request.args
+        # ck = req.get("oauth_token")
+        # cs = req.get("oauth_verifier")
+        # ID = req.get("id")
+
+        # print(ck)
+        # print(cs)
+        # print(ID)
+
+        # access_token_url = 'https://api.twitter.com/oauth/access_token'
+
+        # #OAuth認証でアクセストークンを取得
+
+        # print(res)
+
+        # #アクセストークンを取り出す
+        # AT = res.get('oauth_token')
+        # AS = res.get('oauth_token_secret')
+
+        # print(AT)
+        # print(AS)
+
+        # #TwitterBOTのテスト
+        # #Pythonという文字列を含むツイートをふぁぼる
+
+    # except:
+    #     return jsonify({
+    #         'status':False,
+    #         'error':'error'
+    #     })
+
+#     return jsonify({
+#             'status':True,
+#             'oauthToken':oauthToken,
+#             'oauthVerifier':oauthVerifier,
+#             'id':ID
+#         })
 
 @app.route('/')
 def index():
