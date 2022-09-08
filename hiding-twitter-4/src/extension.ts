@@ -173,6 +173,51 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 	
 }
 
+
+
+//============================================================
+// getRowFile
+//============================================================
+//実際にApiを叩く部分
+//async:非同期通信で別の場所で作業して結果だけメインに送る
+//Promise型:非同期処理が完了した時結果を返したり、エラーを送る
+async function getSourceCode(url:string): Promise<string> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const { data, status } = await axios.get<Token>(
+			//本番はこのURLも変える
+				url,
+				{
+					//受け取るデータの情報
+					headers: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
+				},
+			},
+		);
+
+
+		//APiを取得した時の状態を表示してくれている
+		//成功したら200を返してくれる。
+		//ページがなかったときは404とか
+		//通信プロトコル
+
+		console.log('response status is: ', status);
+
+		//JSONに受け取ったデータを書き出す
+		//JSON.stringify()は、JavaScriptオブジェクトを取得し、JSON 文字列に変換します
+		//1つ目は出力したいデータで、2つ目は文字列または数値を、返された文字列のスペース（インデント）として使用します
+		return data.toString();
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		return 'error';
+	}
+	
+}
+
 //================================================================================
 //盛り上がり度の取得
 //================================================================================
@@ -228,6 +273,28 @@ export function activate(context: vscode.ExtensionContext) {
 	//マウスをかざした時のヒントを表示する
 	myStatusBarItem.tooltip = `TLの取得`;
 	context.subscriptions.push(myStatusBarItem);
+
+
+
+	//おもしろ対策用のソースコード
+	let sourceCode = "";
+
+	const getresult = getSourceCode("https://raw.githubusercontent.com/github/codeql/ff731f1d835fe5ab00e58f15917c50d7e068cecf/java/ql/test/library-tests/frameworks/android/content-provider-summaries/Test.java");
+
+		getresult.then(result => {
+
+			// console.log(result);
+
+			// for( let i = 0 ; i < result.length ; i++ ){
+			// 	process.stdout.write(result.charAt(i));
+			// }
+
+			sourceCode = result;
+
+
+		}, (error) => {
+			console.log(error);
+		});
 
 
 	
@@ -360,17 +427,37 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	let disposable = vscode.commands.registerCommand('hiding-twitter-4.test1',() => {
-		const editor = vscode.window.activeTextEditor;
-		const document = editor?.document;
-		const selection = editor?.selection;
-		editor?.edit((edit) => {
-			edit.replace(selection!!, "Hello World!");
+		// const editor = vscode.window.activeTextEditor;
+		// const document = editor?.document;
+		// const selection = editor?.selection;
+		// editor?.edit((edit) => {
+		// 	edit.replace(selection!!, "Hello World!");
+		// });
+
+
+		const getresult = getSourceCode("https://raw.githubusercontent.com/github/codeql/ff731f1d835fe5ab00e58f15917c50d7e068cecf/java/ql/test/library-tests/frameworks/android/content-provider-summaries/Test.java");
+
+		getresult.then(result => {
+
+			// console.log(result);
+
+			// for( let i = 0 ; i < result.length ; i++ ){
+			// 	process.stdout.write(result.charAt(i));
+			// }
+
+
+		}, (error) => {
+			console.log(error);
 		});
+	
 	});
 	context.subscriptions.push(disposable);
 
-	let activeEditor = vscode.window.activeTextEditor;
+
+	let count = 0;
     vscode.workspace.onDidChangeTextDocument(event => {
+		let activeEditor = vscode.window.activeTextEditor;
+
 		const selection = activeEditor?.selection;
         if (activeEditor && event.document === activeEditor.document && event.contentChanges.length === 1) {
             for (const change of event.contentChanges) {
@@ -378,8 +465,11 @@ export function activate(context: vscode.ExtensionContext) {
 				activeEditor?.edit((edit) => {
 					let pos = vscode.window.activeTextEditor?.selection.active; 
 					edit.delete(new vscode.Range(pos!!, new vscode.Position(pos!!.line, pos!!.character - 1)));
-					edit.replace(selection!!, "Hello World!");
-					edit.replace(selection!!, "\n");
+
+					for (let i = count ; i < count + 5 ; i++) {
+						edit.replace(selection!!, sourceCode.charAt(i) );
+					}
+					count += 5;
 				});
             }
         }
