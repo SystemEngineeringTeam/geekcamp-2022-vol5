@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
+import { eventNames } from 'process';
 
 
 //実際にApiを叩く部分
@@ -327,12 +328,7 @@ export function activate(context: vscode.ExtensionContext) {
 				myStatusBarItem.text = `${icon} Twitter`;
 				myStatusBarItem.show();
 			});
-
-			
 		}
-
-		
-
 	});
 	context.subscriptions.push(getTimeLine);
 
@@ -363,7 +359,51 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	let disposable = vscode.commands.registerCommand('hiding-twitter-4.test1',() => {
+		const editor = vscode.window.activeTextEditor;
+		const document = editor?.document;
+		const selection = editor?.selection;
+		editor?.edit((edit) => {
+			edit.replace(selection!!, "Hello World!");
+		});
+	});
+	context.subscriptions.push(disposable);
+
+	let activeEditor = vscode.window.activeTextEditor;
+    vscode.workspace.onDidChangeTextDocument(event => {
+		const selection = activeEditor?.selection;
+        if (activeEditor && event.document === activeEditor.document && event.contentChanges.length === 1) {
+            for (const change of event.contentChanges) {
+                console.log(change.text);
+				activeEditor?.edit((edit) => {
+					let pos = vscode.window.activeTextEditor?.selection.active; 
+					edit.delete(new vscode.Range(pos!!, new vscode.Position(pos!!.line, pos!!.character - 1)));
+					edit.replace(selection!!, "Hello World!");
+					edit.replace(selection!!, "\n");
+				});
+            }
+        }
+    }, null, context.subscriptions);
+
+
 }
+
+// function handleChange(event: vscode.TextDocumentChangeEvent) {
+// 	const editor = vscode.window.activeTextEditor;
+// 	const document = editor?.document;
+// 	const selection = editor?.selection;
+
+//     console.log("Change in the text editor");
+
+// 	console.log(event.contentChanges[0].text);
+
+// 	if(event)
+
+// 	editor?.edit((edit) => {
+// 		edit.replace(selection!!, "Hello World!");
+// 		edit.replace(selection!!, "\n");
+// 	});
+// }
 
 
 
