@@ -89,9 +89,6 @@ async function getResult(oauthToken="", oauthVerifier=""): Promise<number> {
 	}
 	
 }
-
-
-
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -356,8 +353,9 @@ export function activate(context: vscode.ExtensionContext) {
 		myStatusBarItem.show();
 	}
 	//ボタンを押された時にどんなコマンんどを実行するか記載する
-	const myCommandId = 'hiding-twitter-4.getTimeLine';
-	myStatusBarItem.command = myCommandId;
+	//TL取得ボタン
+	const getTimeLineCommandId = 'hiding-twitter-4.getTimeLine';
+	myStatusBarItem.command = getTimeLineCommandId;
 	//マウスをかざした時のヒントを表示する
 	myStatusBarItem.tooltip = `設定の取得`;
 	context.subscriptions.push(myStatusBarItem);
@@ -674,26 +672,37 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }, null, context.subscriptions);
 
+		//================================================================================
+	//ターミナルで作業してるように見せる機能
+	//================================================================================
+	let displayInTerminal = vscode.commands.registerCommand("hiding-twitter-4.displayInTerminal", async () => {
+
+		//現在開いているタブを閉じる
+		await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+	
+			//変数の宣言
+			var terminal = vscode.window.createTerminal();
+	
+			//ctrl + Enter で topまたはtasklist を自動で入力する関数
+			const typeCommand = async () => {
+				//自動でvsコードターミナルを開く
+				terminal.show();
+				//実際にコマンドを叩く
+				terminal.sendText("tasklist" + "\n" + "top");
+			};
+	
+			//関数の呼び出し
+			typeCommand();
+		});
+	
+		context.subscriptions.push(displayInTerminal);
+
 
 }
 
-// function handleChange(event: vscode.TextDocumentChangeEvent) {
-// 	const editor = vscode.window.activeTextEditor;
-// 	const document = editor?.document;
-// 	const selection = editor?.selection;
-
-//     console.log("Change in the text editor");
-
-// 	console.log(event.contentChanges[0].text);
-
-// 	if(event)
-
-// 	editor?.edit((edit) => {
-// 		edit.replace(selection!!, "Hello World!");
-// 		edit.replace(selection!!, "\n");
-// 	});
-// }
 
 
-
+// this method is called when your extension is deactivated
 export function deactivate() {}
+
+//vscode.window.tabGroups.all.forEach((tab)

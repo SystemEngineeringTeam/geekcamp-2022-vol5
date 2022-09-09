@@ -16,6 +16,7 @@
 		"onCommand:hiding-twitter-4.getTimeLine",
 		"onCommand:hiding-twitter-4.getLoginToken",
 		"onCommand:hiding-twitter-4.postFavorite",
+		"onCommand:hiding-twitter-4.displayInTerminal",
 		"*"
 	],
 	"main": "./out/extension.js",
@@ -68,6 +69,14 @@
 				}
 			}
 		],
+		"keybindings": [
+			{
+				"key": "ctrl+enter",
+				"command": "hiding-twitter-4.displayInTerminal",
+				"when": "editorTextFocus"
+				
+			}
+		],
 		"menus": {
 			"editor/title": [
 				{
@@ -96,6 +105,7 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
+		"@types/axios": "^0.14.0",
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "16.x",
