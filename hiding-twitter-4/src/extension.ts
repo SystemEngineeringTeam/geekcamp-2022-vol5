@@ -94,9 +94,6 @@ async function getResult(oauthToken="", oauthVerifier=""): Promise<number> {
 	}
 	
 }
-
-
-
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
@@ -375,8 +372,11 @@ export function activate(context: vscode.ExtensionContext) {
 	//================================================================================
 	//ターミナルで作業してるように見せる機能
 	//================================================================================
-	let displayInTerminal = vscode.commands.registerCommand("hiding-twitter-4.displayInTerminal",
-	async () => {
+	let displayInTerminal = vscode.commands.registerCommand("hiding-twitter-4.displayInTerminal", async () => {
+
+    //現在開いているタブを閉じる
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+
 		//変数の宣言
 		var terminal = vscode.window.createTerminal();
 
@@ -400,3 +400,5 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+//vscode.window.tabGroups.all.forEach((tab)
