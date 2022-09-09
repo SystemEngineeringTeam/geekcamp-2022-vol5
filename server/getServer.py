@@ -140,11 +140,11 @@ def twitter_favorite():
         AS = req.get("oauth_verifier")
         ID = req.get("twitter_id")
 
-        auth.set_access_token(auth.access_token,auth.access_token_secret)
+        auth.set_access_token(AT,AS)
         api = tweepy.API(auth)
 
         try:
-            api.create_favorite(ID)
+            api.create_favorite(id=ID)
         except tweepy.error.TweepError as e:
             print(e)
 
