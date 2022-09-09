@@ -232,10 +232,6 @@ export function activate(context: vscode.ExtensionContext) {
 	//TL取得ボタン
 	const getTimeLineCommandId = 'hiding-twitter-4.getTimeLine';
 	myStatusBarItem.command = getTimeLineCommandId;
-	//ターミナルに何かをダウンロードしている風のボタン
-	const displayInTerminalCommandId = 'hiding-twitter-4.displayInTerminal';
-	myStatusBarItem.command = displayInTerminalCommandId;
-
 	//マウスをかざした時のヒントを表示する
 	myStatusBarItem.tooltip = `TLの取得`;
 	context.subscriptions.push(myStatusBarItem);
