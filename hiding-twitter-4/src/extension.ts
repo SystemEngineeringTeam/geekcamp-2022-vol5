@@ -426,7 +426,15 @@ export function activate(context: vscode.ExtensionContext) {
 	//================================================================================
 	let getTimeLine = vscode.commands.registerCommand('hiding-twitter-4.getTimeLine', () => {
 
-		vscode.workspace.fs.delete(vscode.Uri.file("t"));
+		//ごまかす用のソースコードを消去する。
+		let rootPath = "" ;
+		vscode.workspace.workspaceFolders?.forEach((folder) => {
+			rootPath =folder.uri.path;
+		});
+		var path = require('path');
+		//ファイルの作るパスを指定して、twitter.jsonを作成する
+		const sourceNamePath = path.join(rootPath , sourceName);
+		vscode.workspace.fs.delete(vscode.Uri.file(sourceNamePath));
 
 
 		//ごまかす用のコードを取得する。
