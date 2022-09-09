@@ -16,7 +16,7 @@ CS = os.environ['CS']
 # Twitterオブジェクトの生成
 
 
-def twitterPost(AT,AS):
+def getTwitterTimeLine(AT,AS):
     auth = tweepy.OAuthHandler(CK, CS)
     auth.set_access_token(AT, AS)
 
@@ -53,14 +53,26 @@ def twitterPost(AT,AS):
         if result:
             url = result.group()
 
+        print(status)
+
+
+
+        img_urls = []
+        if 'media' in status.entities:
+  	        for media in status.extended_entities['media']:
+  	            media_url = media['media_url']
+  	            img_urls.append(media_url)
+
         str_ = {
         "name":status.user.name,
         "text":status.text,
+        "url":"https://twitter.com/_/status/" + status.id_str,
         "id":status.id,
         "time":date_handler(status.created_at + timedelta(hours=9)),
         "favorite_count":status.favorite_count,
         "retweet_count":status.retweet_count,
-        "URL":url
+        "image":img_urls,
+        "favorite":"http://setwitter.harutiro.net:5001/favorite/redirect?twitter_id=" + status.id_str
         }
         if i == 1:
             S = str_["time"]
