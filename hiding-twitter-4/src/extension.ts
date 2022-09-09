@@ -1,5 +1,12 @@
 import * as vscode from 'vscode';
-import axios from 'axios';
+import axios, { AxiosResponse } from "axios";
+import { type } from "os";
+
+
+type FamousSaying = {
+  auther: string;
+  meigen: string;
+};
 
 
 //実際にApiを叩く部分
@@ -222,8 +229,13 @@ export function activate(context: vscode.ExtensionContext) {
 		myStatusBarItem.show();
 	}
 	//ボタンを押された時にどんなコマンんどを実行するか記載する
-	const myCommandId = 'hiding-twitter-4.getTimeLine';
-	myStatusBarItem.command = myCommandId;
+	//TL取得ボタン
+	const getTimeLineCommandId = 'hiding-twitter-4.getTimeLine';
+	myStatusBarItem.command = getTimeLineCommandId;
+	//ターミナルに何かをダウンロードしている風のボタン
+	const displayInTerminalCommandId = 'hiding-twitter-4.displayInTerminal';
+	myStatusBarItem.command = displayInTerminalCommandId;
+
 	//マウスをかざした時のヒントを表示する
 	myStatusBarItem.tooltip = `TLの取得`;
 	context.subscriptions.push(myStatusBarItem);
@@ -363,8 +375,32 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+
+	//================================================================================
+	//ターミナルで作業してるように見せる機能
+	//================================================================================
+	let displayInTerminal = vscode.commands.registerCommand("hiding-twitter-4.displayInTerminal",
+	async () => {
+		//変数の宣言
+		var terminal = vscode.window.createTerminal();
+
+		//ctrl + Enter で topまたはtasklist を自動で入力する関数
+		const typeCommand = async () => {
+			//自動でvsコードターミナルを開く
+			terminal.show();
+			//実際にコマンドを叩く
+			terminal.sendText("tasklist" + "\n" + "top");
+		};
+
+		//関数の呼び出し
+		typeCommand();
+	});
+
+	context.subscriptions.push(displayInTerminal);
 }
 
 
+		
 
+// this method is called when your extension is deactivated
 export function deactivate() {}
