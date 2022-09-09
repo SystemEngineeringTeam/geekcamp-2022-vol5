@@ -138,7 +138,7 @@ def twitter_favorite():
         req = request.args
         AT = req.get("oauth_token")
         AS = req.get("oauth_verifier")
-        ID = req.get("id")
+        ID = req.get("twitter_id")
 
         auth.set_access_token(auth.access_token,auth.access_token_secret)
         api = tweepy.API(auth)
@@ -152,6 +152,13 @@ def twitter_favorite():
             'status':False,
             'error':'error'
         })
+
+@app.route('/favorite/redirect' ,methods=["GET"])
+def twitter_favorite_redirect():
+    req = request.args
+    ID = req.get("twitter_id")
+
+    return redirect(f'vscode://sysken.hiding-twitter?twitter_id={ID}')
 
 @app.route('/')
 def index():
