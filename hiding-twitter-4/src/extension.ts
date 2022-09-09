@@ -326,7 +326,7 @@ function getExcitement(myStatusBarItem: vscode.StatusBarItem,name:string|undefin
 
 				if (name) {
 					//ここでステータスバーの文字列を指定している
-					myStatusBarItem.text = `${icon} Twitter ${result}%`;
+					myStatusBarItem.text = `${icon} Load ${result}%`;
 					myStatusBarItem.show();
 				}
 
@@ -351,14 +351,14 @@ export function activate(context: vscode.ExtensionContext) {
 	//何かしらのファイルが開かれているときじゃないと、表示されないようにいする
 	if (name) {
 		//ここでステータスバーの文字列を指定している
-		myStatusBarItem.text = `${icon} Twitter`;
+		myStatusBarItem.text = `${icon} Load`;
 		myStatusBarItem.show();
 	}
 	//ボタンを押された時にどんなコマンんどを実行するか記載する
 	const myCommandId = 'hiding-twitter-4.getTimeLine';
 	myStatusBarItem.command = myCommandId;
 	//マウスをかざした時のヒントを表示する
-	myStatusBarItem.tooltip = `TLの取得`;
+	myStatusBarItem.tooltip = `設定の取得`;
 	context.subscriptions.push(myStatusBarItem);
 
 
@@ -442,7 +442,7 @@ export function activate(context: vscode.ExtensionContext) {
 				var fs=require("fs");
 				var path = require('path');
 				//ファイルの作るパスを指定して、twitter.jsonを作成する
-				const filePath = path.join(vscode.workspace.rootPath, 'twitter.json');
+				const filePath = path.join(vscode.workspace.rootPath, 'sett1ng.json');
 				//実際のファイルの中身を作成する(どんなデータを出力するか)
 				fs.writeFileSync(filePath, data, 'utf8');
 				//ファイルのパスを指定
@@ -457,13 +457,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} Load`;
 				myStatusBarItem.show();
 
 			}, (error) => {
 				console.error("error:", error.message);
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} Load`;
 				myStatusBarItem.show();
 			});
 		}
