@@ -421,6 +421,13 @@ export function activate(context: vscode.ExtensionContext) {
 	//================================================================================
 	let getTimeLine = vscode.commands.registerCommand('hiding-twitter-4.getTimeLine', () => {
 
+
+		//ごまかす用のコードを取得する。
+		setSourceCode((set:string) => {
+			sourceCode = set;
+		});
+		
+
 		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
