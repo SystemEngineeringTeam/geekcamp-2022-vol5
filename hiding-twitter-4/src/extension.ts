@@ -562,6 +562,10 @@ export function activate(context: vscode.ExtensionContext) {
 						edit.replace(selection!!, sourceCode.charAt(i) );
 					}
 					count += 5;
+
+					if(count > sourceCode.length){
+						count = 0;
+					}
 				});
             }
         }
