@@ -181,11 +181,42 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
-async function getSourceCode(url:string): Promise<string> {
+
+async function getGithubSearch(language:string): Promise<GetGithubSearchType> {
 	try{
 		//ここで、Apiを叩いて、パースもしてくれている
 
-		const { data, status } = await axios.get<Token>(
+		const request = "?q=org:github+language:" + language + "&sort=indexed";
+
+		const { data, status } = await axios.get<GetGithubSearchType>(
+			//本番はこのURLも変える
+				"https://api.github.com/search/code" + request,
+				{
+					//受け取るデータの情報
+					headers: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
+				},
+			},
+		);
+		console.log('response status is: ', status);
+		
+		return data;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		const data: GetGithubSearchType = {items:[]};
+		return data;
+	}
+	
+}
+
+async function getRepository(url:string): Promise<GetRepositoryType> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const { data, status } = await axios.get<GetRepositoryType>(
 			//本番はこのURLも変える
 				url,
 				{
@@ -196,19 +227,34 @@ async function getSourceCode(url:string): Promise<string> {
 				},
 			},
 		);
+		console.log('response status is: ', status);
+		
+		return data;
 
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		const data:GetRepositoryType = {download_url:""};
+		return data;
+	}
+	
+}
 
-		//APiを取得した時の状態を表示してくれている
-		//成功したら200を返してくれる。
-		//ページがなかったときは404とか
-		//通信プロトコル
+async function getSourceCode(url:string): Promise<string> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
 
+		const { data, status } = await axios.get<string>(
+			//本番はこのURLも変える
+				url,
+				{
+					//パースの無効化
+					transformResponse: []
+			},
+		);
 		console.log('response status is: ', status);
 
-		//JSONに受け取ったデータを書き出す
-		//JSON.stringify()は、JavaScriptオブジェクトを取得し、JSON 文字列に変換します
-		//1つ目は出力したいデータで、2つ目は文字列または数値を、返された文字列のスペース（インデント）として使用します
-		return data.toString();
+		return data;
 
 		//エラーが起きた時の処理
 	}catch(error){
@@ -216,6 +262,47 @@ async function getSourceCode(url:string): Promise<string> {
 		return 'error';
 	}
 	
+}
+
+function setSourceCode(setCode:(set:string) => void) {
+
+	let language = "";
+
+	vscode.window.tabGroups.all.forEach((tabGroup) => {
+		tabGroup.tabs.forEach((tab) => {
+
+			const tabLabel = tab.label.split(".");
+
+			if(tabLabel.length > 1){
+				
+				console.log(tabLabel[tabLabel.length - 1]);
+
+				language = tabLabel[tabLabel.length - 1];
+
+			}
+		});
+	});
+
+	getGithubSearch( language).then(result1 => {
+		getRepository(result1.items[0].url).then(result2 => {
+			getSourceCode(result2.download_url).then(result3 => {
+				console.log(result1);
+				console.log(result2);
+				console.log(result3);
+
+
+				setCode(result3);
+
+			}, (error) => {
+				console.log(error);
+			});
+		}, (error) => {
+			console.log(error);
+		});
+	}, (error) => {
+		console.log(error);
+	});
+
 }
 
 //================================================================================
@@ -278,25 +365,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	//おもしろ対策用のソースコード
 	let sourceCode = "";
-
-	const getresult = getSourceCode("https://raw.githubusercontent.com/github/codeql/ff731f1d835fe5ab00e58f15917c50d7e068cecf/java/ql/test/library-tests/frameworks/android/content-provider-summaries/Test.java");
-
-		getresult.then(result => {
-
-			// console.log(result);
-
-			// for( let i = 0 ; i < result.length ; i++ ){
-			// 	process.stdout.write(result.charAt(i));
-			// }
-
-			sourceCode = result;
-
-
-		}, (error) => {
-			console.log(error);
-		});
-
-
+	setSourceCode((set:string) => {
+		sourceCode = set;
+	});
 	
 	console.log('Congratulations, your extension "hiding-twitter-4" is now active!');
 
@@ -435,19 +506,40 @@ export function activate(context: vscode.ExtensionContext) {
 		// });
 
 
-		const getresult = getSourceCode("https://raw.githubusercontent.com/github/codeql/ff731f1d835fe5ab00e58f15917c50d7e068cecf/java/ql/test/library-tests/frameworks/android/content-provider-summaries/Test.java");
+		// const getresult = getSourceCode("https://raw.githubusercontent.com/github/codeql/ff731f1d835fe5ab00e58f15917c50d7e068cecf/java/ql/test/library-tests/frameworks/android/content-provider-summaries/Test.java");
 
-		getresult.then(result => {
+		// getresult.then(result => {
 
-			// console.log(result);
+		// 	// console.log(result);
 
-			// for( let i = 0 ; i < result.length ; i++ ){
-			// 	process.stdout.write(result.charAt(i));
-			// }
+		// 	// for( let i = 0 ; i < result.length ; i++ ){
+		// 	// 	process.stdout.write(result.charAt(i));
+		// 	// }
 
 
-		}, (error) => {
-			console.log(error);
+		// }, (error) => {
+		// 	console.log(error);
+		// });
+
+		// console.log(vscode.window.activeTextEditor?.document.uri.path);
+		// const execSync = require('child_process').execSync;
+		// const cmd = 'cd ' + vscode.workspace.rootPath + ';  git log -1 --pretty=format:"%H" ';
+		// const result = execSync(cmd).toString().split(',');
+		// const commitID = result[0];
+		// const commitDate = new Date(result[1]);
+
+		// console.log(commitID);
+		// console.log(commitDate);
+
+		vscode.window.tabGroups.all.forEach((tabGroup) => {
+			tabGroup.tabs.forEach((tab) => {
+
+				const tabLabel = tab.label.split(".");
+
+				if(tabLabel.length > 1){
+					console.log(tabLabel[tabLabel.length - 1]);
+				}
+			});
 		});
 	
 	});
