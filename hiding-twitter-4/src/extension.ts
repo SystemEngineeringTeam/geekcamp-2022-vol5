@@ -135,11 +135,11 @@ async function getToken(): Promise<string> {
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
-async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<string> {
+async function postFavorite(oauthToken="", oauthVerifier="",tweetId=""): Promise<number> {
 	try{
 		//ここで、Apiを叩いて、パースもしてくれている
 
-		const request = "?oauth_token=" + oauthToken + "&oauth_verifier=" + oauthVerifier + "&id=" + tweetId;
+		const request = "?oauth_token=" + oauthToken + "&oauth_verifier=" + oauthVerifier + "&twitter_id=" + tweetId;
 
 		const { data, status } = await axios.get<Token>(
 			//本番はこのURLも変える
@@ -164,12 +164,12 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 		//JSONに受け取ったデータを書き出す
 		//JSON.stringify()は、JavaScriptオブジェクトを取得し、JSON 文字列に変換します
 		//1つ目は出力したいデータで、2つ目は文字列または数値を、返された文字列のスペース（インデント）として使用します
-		return JSON.stringify(data, null, 4);;
+		return status;
 
 		//エラーが起きた時の処理
 	}catch(error){
 		console.log('error');
-		return 'error';
+		return 0;
 	}
 	
 }
@@ -402,16 +402,16 @@ export function activate(context: vscode.ExtensionContext) {
 	//================================================================================
 	//いいね機能
 	//================================================================================
-	let postFavorite = vscode.commands.registerCommand('hiding-twitter-4.postFavorite', () => {
+	let postFavoriteApi = vscode.commands.registerCommand('hiding-twitter-4.postFavorite', () => {
 		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
 
 
-		const hello = setFavorite(conf.get('oauth_token'),conf.get('oauth_verifier'),1545914408152359000);
+		const api = postFavorite(conf.get('oauth_token'),conf.get('oauth_verifier'),"1545914408152359000");
 
-		hello.then(data => {
-			vscode.window.showInformationMessage(data);
+		api.then(data => {
+			vscode.window.showInformationMessage(data.toString());
 			console.log(data);
 
 		}, (error) => {
@@ -419,7 +419,7 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	});
-	context.subscriptions.push(postFavorite);
+	context.subscriptions.push(postFavoriteApi);
 
 	//================================================================================
 	//TLの取得
@@ -515,9 +515,30 @@ export function activate(context: vscode.ExtensionContext) {
 			const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
 			const setAsGlobal = (settings.inspect("oauth_verifier")!.workspaceValue === undefined);
 			settings.update("oauth_verifier",queryParams.get('oauth_verifier') ,setAsGlobal); // myParamをhogeに変更
+
+			vscode.window.showInformationMessage(`ログインしました。`);
+
 		}
 
-		vscode.window.showInformationMessage(`ログインしました。`);
+		if(queryParams.has('twitter_id')){
+			const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
+
+			let twitterId = "";
+			if(queryParams.get('twitter_id') !== undefined && queryParams.get('twitter_id') !== null){
+				twitterId = queryParams.get('twitter_id')!!;
+			}
+
+			const api = postFavorite(conf.get('oauth_token'),conf.get('oauth_verifier'),  twitterId);
+
+			api.then(data => {
+				vscode.window.showInformationMessage(data.toString());
+				console.log(data);
+
+			}, (error) => {
+				console.log(error);
+			});
+		}
+
 
 	};
 	context.subscriptions.push(
