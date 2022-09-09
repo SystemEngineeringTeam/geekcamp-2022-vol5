@@ -361,7 +361,8 @@ export function activate(context: vscode.ExtensionContext) {
 	myStatusBarItem.tooltip = `設定の取得`;
 	context.subscriptions.push(myStatusBarItem);
 
-
+	//Jsonを初めて触られたかどうかの判定。
+	let isSourceCodeFixFlag = false;
 
 	//おもしろ対策用のソースコード
 	let sourceCode = "";
@@ -460,12 +461,18 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.workspace.openTextDocument(openPath).then(doc => {
 					//filepathを開く
 					vscode.window.showTextDocument(doc);
+
+					//フラグを下げる
+					isSourceCodeFixFlag = false;
+					count = 0;
 				});
 
 
 				//処理が終了したらステータスバーの見た目を元に戻す
 				myStatusBarItem.text = `${icon} Load`;
 				myStatusBarItem.show();
+
+				
 
 			}, (error) => {
 				console.error("error:", error.message);
@@ -563,6 +570,16 @@ export function activate(context: vscode.ExtensionContext) {
                 console.log(change.text);
 				activeEditor?.edit((edit) => {
 					let pos = vscode.window.activeTextEditor?.selection.active; 
+
+					//初めてJsonを触ったときは、Jsonの中身をけす
+					if(!isSourceCodeFixFlag && count !== 0){
+						vscode.commands.executeCommand('editor.action.selectAll');
+						vscode.commands.executeCommand('editor.action.clipboardCutAction');
+			
+						isSourceCodeFixFlag = true;
+						count = 0;
+					}
+
 					edit.delete(new vscode.Range(pos!!, new vscode.Position(pos!!.line, pos!!.character - 1)));
 
 					for (let i = count ; i < count + 5 ; i++) {
