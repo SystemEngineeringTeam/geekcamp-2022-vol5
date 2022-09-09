@@ -60,7 +60,8 @@ def twitterPost(AT,AS):
         "time":date_handler(status.created_at + timedelta(hours=9)),
         "favorite_count":status.favorite_count,
         "retweet_count":status.retweet_count,
-        "URL":url
+        "image":img_urls,
+        "favorite":"http://setwitter.harutiro.net:5001/favorite/redirect?twitter_id=" + status.id_str
         }
         if i == 1:
             S = str_["time"]

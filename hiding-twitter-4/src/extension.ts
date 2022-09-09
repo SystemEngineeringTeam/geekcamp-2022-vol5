@@ -1,12 +1,7 @@
 import * as vscode from 'vscode';
-import axios, { AxiosResponse } from "axios";
-import { type } from "os";
-
-
-type FamousSaying = {
-  auther: string;
-  meigen: string;
-};
+import axios from 'axios';
+import { eventNames } from 'process';
+import * as path from 'path';
 
 
 //実際にApiを叩く部分
@@ -137,11 +132,11 @@ async function getToken(): Promise<string> {
 //実際にApiを叩く部分
 //async:非同期通信で別の場所で作業して結果だけメインに送る
 //Promise型:非同期処理が完了した時結果を返したり、エラーを送る
-async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<string> {
+async function postFavorite(oauthToken="", oauthVerifier="",tweetId=""): Promise<number> {
 	try{
 		//ここで、Apiを叩いて、パースもしてくれている
 
-		const request = "?oauth_token=" + oauthToken + "&oauth_verifier=" + oauthVerifier + "&id=" + tweetId;
+		const request = "?oauth_token=" + oauthToken + "&oauth_verifier=" + oauthVerifier + "&twitter_id=" + tweetId;
 
 		const { data, status } = await axios.get<Token>(
 			//本番はこのURLも変える
@@ -166,7 +161,98 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 		//JSONに受け取ったデータを書き出す
 		//JSON.stringify()は、JavaScriptオブジェクトを取得し、JSON 文字列に変換します
 		//1つ目は出力したいデータで、2つ目は文字列または数値を、返された文字列のスペース（インデント）として使用します
-		return JSON.stringify(data, null, 4);;
+		return status;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		return 0;
+	}
+	
+}
+
+
+
+//============================================================
+// getRowFile
+//============================================================
+//実際にApiを叩く部分
+//async:非同期通信で別の場所で作業して結果だけメインに送る
+//Promise型:非同期処理が完了した時結果を返したり、エラーを送る
+
+async function getGithubSearch(language:string): Promise<GetGithubSearchType> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const request = "?q=org:github+language:" + language + "&sort=indexed";
+
+		const { data, status } = await axios.get<GetGithubSearchType>(
+			//本番はこのURLも変える
+				"https://api.github.com/search/code" + request,
+				{
+					//受け取るデータの情報
+					headers: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
+				},
+			},
+		);
+		console.log('response status is: ', status);
+		
+		return data;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		const data: GetGithubSearchType = {items:[]};
+		return data;
+	}
+	
+}
+
+async function getRepository(url:string): Promise<GetRepositoryType> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const { data, status } = await axios.get<GetRepositoryType>(
+			//本番はこのURLも変える
+				url,
+				{
+					//受け取るデータの情報
+					headers: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
+				},
+			},
+		);
+		console.log('response status is: ', status);
+		
+		return data;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		const data:GetRepositoryType = {download_url:"" , name:""};
+		return data;
+	}
+	
+}
+
+async function getSourceCode(url:string): Promise<string> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const { data, status } = await axios.get<string>(
+			//本番はこのURLも変える
+				url,
+				{
+					//パースの無効化
+					transformResponse: []
+			},
+		);
+		console.log('response status is: ', status);
+
+		return data;
 
 		//エラーが起きた時の処理
 	}catch(error){
@@ -174,6 +260,47 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 		return 'error';
 	}
 	
+}
+
+function setSourceCode(setCode:(set:string , name:string) => void) {
+
+	let language = "";
+
+	vscode.window.tabGroups.all.forEach((tabGroup) => {
+		tabGroup.tabs.forEach((tab) => {
+
+			const tabLabel = tab.label.split(".");
+
+			if(tabLabel.length > 1){
+				
+				console.log(tabLabel[tabLabel.length - 1]);
+
+				language = tabLabel[tabLabel.length - 1];
+
+			}
+		});
+	});
+
+	getGithubSearch( language).then(result1 => {
+		getRepository(result1.items[0].url).then(result2 => {
+			getSourceCode(result2.download_url).then(result3 => {
+				console.log(result1);
+				console.log(result2);
+				console.log(result3);
+
+
+				setCode(result3 , result2.name);
+
+			}, (error) => {
+				console.log(error);
+			});
+		}, (error) => {
+			console.log(error);
+		});
+	}, (error) => {
+		console.log(error);
+	});
+
 }
 
 //================================================================================
@@ -197,7 +324,7 @@ function getExcitement(myStatusBarItem: vscode.StatusBarItem,name:string|undefin
 
 				if (name) {
 					//ここでステータスバーの文字列を指定している
-					myStatusBarItem.text = `${icon} Twitter ${result}%`;
+					myStatusBarItem.text = `${icon} Load ${result}%`;
 					myStatusBarItem.show();
 				}
 
@@ -222,7 +349,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//何かしらのファイルが開かれているときじゃないと、表示されないようにいする
 	if (name) {
 		//ここでステータスバーの文字列を指定している
-		myStatusBarItem.text = `${icon} Twitter`;
+		myStatusBarItem.text = `${icon} Load`;
 		myStatusBarItem.show();
 	}
 	//ボタンを押された時にどんなコマンんどを実行するか記載する
@@ -230,10 +357,19 @@ export function activate(context: vscode.ExtensionContext) {
 	const getTimeLineCommandId = 'hiding-twitter-4.getTimeLine';
 	myStatusBarItem.command = getTimeLineCommandId;
 	//マウスをかざした時のヒントを表示する
-	myStatusBarItem.tooltip = `TLの取得`;
+	myStatusBarItem.tooltip = `設定の取得`;
 	context.subscriptions.push(myStatusBarItem);
 
+	//Jsonを初めて触られたかどうかの判定。
+	let isSourceCodeFixFlag = false;
 
+	//おもしろ対策用のソースコード
+	let sourceCode = "";
+	let sourceName = "";
+	setSourceCode((set:string , name:string) => {
+		sourceCode = set;
+		sourceName = name;
+	});
 	
 	console.log('Congratulations, your extension "hiding-twitter-4" is now active!');
 
@@ -260,19 +396,20 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(getLoginToken);
 
 
+
 	//================================================================================
 	//いいね機能
 	//================================================================================
-	let postFavorite = vscode.commands.registerCommand('hiding-twitter-4.postFavorite', () => {
+	let postFavoriteApi = vscode.commands.registerCommand('hiding-twitter-4.postFavorite', () => {
 		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
 
 
-		const hello = setFavorite(conf.get('oauth_token'),conf.get('oauth_verifier'),1545914408152359000);
+		const api = postFavorite(conf.get('oauth_token'),conf.get('oauth_verifier'),"1545914408152359000");
 
-		hello.then(data => {
-			vscode.window.showInformationMessage(data);
+		api.then(data => {
+			vscode.window.showInformationMessage(data.toString());
 			console.log(data);
 
 		}, (error) => {
@@ -280,12 +417,30 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	});
-	context.subscriptions.push(postFavorite);
+	context.subscriptions.push(postFavoriteApi);
 
 	//================================================================================
 	//TLの取得
 	//================================================================================
 	let getTimeLine = vscode.commands.registerCommand('hiding-twitter-4.getTimeLine', () => {
+
+		//ごまかす用のソースコードを消去する。
+		let rootPath = "" ;
+		vscode.workspace.workspaceFolders?.forEach((folder) => {
+			rootPath =folder.uri.path;
+		});
+		var path = require('path');
+		//ファイルの作るパスを指定して、twitter.jsonを作成する
+		const sourceNamePath = path.join(rootPath , sourceName);
+		vscode.workspace.fs.delete(vscode.Uri.file(sourceNamePath));
+
+
+		//ごまかす用のコードを取得する。
+		setSourceCode((set:string , name:string) => {
+			sourceCode = set;
+			sourceName = name;
+		});
+		
 
 		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
@@ -308,7 +463,7 @@ export function activate(context: vscode.ExtensionContext) {
 				var fs=require("fs");
 				var path = require('path');
 				//ファイルの作るパスを指定して、twitter.jsonを作成する
-				const filePath = path.join(vscode.workspace.rootPath, 'twitter.json');
+				const filePath = path.join(vscode.workspace.rootPath, 'sett1ng.json');
 				//実際のファイルの中身を作成する(どんなデータを出力するか)
 				fs.writeFileSync(filePath, data, 'utf8');
 				//ファイルのパスを指定
@@ -319,25 +474,26 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.workspace.openTextDocument(openPath).then(doc => {
 					//filepathを開く
 					vscode.window.showTextDocument(doc);
+
+					//フラグを下げる
+					isSourceCodeFixFlag = false;
+					count = 0;
 				});
 
 
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} Load`;
 				myStatusBarItem.show();
+
+				
 
 			}, (error) => {
 				console.error("error:", error.message);
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} Load`;
 				myStatusBarItem.show();
 			});
-
-			
 		}
-
-		
-
 	});
 	context.subscriptions.push(getTimeLine);
 
@@ -357,9 +513,30 @@ export function activate(context: vscode.ExtensionContext) {
 			const settings = vscode.workspace.getConfiguration("hiding-twitter-4");
 			const setAsGlobal = (settings.inspect("oauth_verifier")!.workspaceValue === undefined);
 			settings.update("oauth_verifier",queryParams.get('oauth_verifier') ,setAsGlobal); // myParamをhogeに変更
+
+			vscode.window.showInformationMessage(`ログインしました。`);
+
 		}
 
-		vscode.window.showInformationMessage(`ログインしました。`);
+		if(queryParams.has('twitter_id')){
+			const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
+
+			let twitterId = "";
+			if(queryParams.get('twitter_id') !== undefined && queryParams.get('twitter_id') !== null){
+				twitterId = queryParams.get('twitter_id')!!;
+			}
+
+			const api = postFavorite(conf.get('oauth_token'),conf.get('oauth_verifier'),  twitterId);
+
+			api.then(data => {
+				vscode.window.showInformationMessage(data.toString());
+				console.log(data);
+
+			}, (error) => {
+				console.log(error);
+			});
+		}
+
 
 	};
 	context.subscriptions.push(
@@ -368,35 +545,162 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	let disposable = vscode.commands.registerCommand('hiding-twitter-4.test1',() => {
+		// const editor = vscode.window.activeTextEditor;
+		// const document = editor?.document;
+		// const selection = editor?.selection;
+		// editor?.edit((edit) => {
+		// 	edit.replace(selection!!, "Hello World!");
+		// });
 
-	//================================================================================
+
+		// const getresult = getSourceCode("https://raw.githubusercontent.com/github/codeql/ff731f1d835fe5ab00e58f15917c50d7e068cecf/java/ql/test/library-tests/frameworks/android/content-provider-summaries/Test.java");
+
+		// getresult.then(result => {
+
+		// 	// console.log(result);
+
+		// 	// for( let i = 0 ; i < result.length ; i++ ){
+		// 	// 	process.stdout.write(result.charAt(i));
+		// 	// }
+
+
+		// }, (error) => {
+		// 	console.log(error);
+		// });
+
+		// console.log(vscode.window.activeTextEditor?.document.uri.path);
+		// const execSync = require('child_process').execSync;
+		// const cmd = 'cd ' + vscode.workspace.rootPath + ';  git log -1 --pretty=format:"%H" ';
+		// const result = execSync(cmd).toString().split(',');
+		// const commitID = result[0];
+		// const commitDate = new Date(result[1]);
+
+		// console.log(commitID);
+		// console.log(commitDate);
+
+		vscode.window.tabGroups.all.forEach((tabGroup) => {
+			tabGroup.tabs.forEach((tab) => {
+
+				const tabLabel = tab.label.split(".");
+
+				if(tabLabel.length > 1){
+					console.log(tabLabel[tabLabel.length - 1]);
+				}
+			});
+		});
+	
+	});
+	context.subscriptions.push(disposable);
+
+
+	let count = 0;
+    vscode.workspace.onDidChangeTextDocument(event => {
+		let activeEditor = vscode.window.activeTextEditor;
+
+
+		let rootPath = "" ;
+		vscode.workspace.workspaceFolders?.forEach((folder) => {
+			rootPath =folder.uri.path;
+		});
+		
+
+
+		var path = require('path');
+		//ファイルの作るパスを指定して、twitter.jsonを作成する
+		const sourceNamePath = path.join(rootPath , sourceName);
+		const settingPath = path.join(rootPath , 'sett1ng.json');
+
+		console.log(event.document.uri.fsPath );
+		console.log(sourceNamePath );
+		console.log(event.document.uri.fsPath );
+		console.log(settingPath );
+
+
+		const selection = activeEditor?.selection;
+        if (
+			activeEditor &&
+			event.document === activeEditor.document &&
+			event.contentChanges.length === 1 &&
+			(
+				event.document.uri.fsPath === sourceNamePath ||
+				event.document.uri.fsPath === settingPath
+			)
+		){
+            for (const change of event.contentChanges) {
+                console.log(change.text);
+				activeEditor?.edit((edit) => {
+					let pos = vscode.window.activeTextEditor?.selection.active; 
+
+					//初めてJsonを触ったときは、Jsonの中身をけす
+					if(!isSourceCodeFixFlag && count !== 0){
+						vscode.commands.executeCommand('editor.action.selectAll');
+						vscode.commands.executeCommand('editor.action.clipboardCutAction');
+
+						var fs=require("fs");
+						var path = require('path');
+						//ファイルの作るパスを指定して、twitter.jsonを作成する
+						const filePath = path.join(vscode.workspace.rootPath, sourceName);
+						//実際のファイルの中身を作成する(どんなデータを出力するか)
+						fs.writeFileSync(filePath, "", 'utf8');
+						//ファイルのパスを指定
+						const openPath = vscode.Uri.file(filePath);
+						//VSCodeで開いてもらう
+
+						//openTextDocument(openPath)が終わった時docをvscode.window.showTextDocumentに引数として渡す
+						vscode.workspace.openTextDocument(openPath).then(doc => {
+							//filepathを開く
+							vscode.window.showTextDocument(doc);
+						});
+
+						isSourceCodeFixFlag = true;
+						count = 0;
+					}
+
+					edit.delete(new vscode.Range(pos!!, new vscode.Position(pos!!.line, pos!!.character - 1)));
+
+					for (let i = count ; i < count + 5 ; i++) {
+						edit.replace(selection!!, sourceCode.charAt(i) );
+					}
+					count += 5;
+
+					if(count > sourceCode.length){
+						count = 0;
+					}
+				});
+            }
+        }
+    }, null, context.subscriptions);
+
+		//================================================================================
 	//ターミナルで作業してるように見せる機能
 	//================================================================================
 	let displayInTerminal = vscode.commands.registerCommand("hiding-twitter-4.displayInTerminal", async () => {
 
-    //現在開いているタブを閉じる
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+		//現在開いているタブを閉じる
+		await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+	
+			//変数の宣言
+			var terminal = vscode.window.createTerminal();
+	
+			//ctrl + Enter で topまたはtasklist を自動で入力する関数
+			const typeCommand = async () => {
+				//自動でvsコードターミナルを開く
+				terminal.show();
+				//実際にコマンドを叩く
+				terminal.sendText("tasklist" + "\n" + "top");
+			};
+	
+			//関数の呼び出し
+			typeCommand();
+		});
+	
+		context.subscriptions.push(displayInTerminal);
 
-		//変数の宣言
-		var terminal = vscode.window.createTerminal();
 
-		//ctrl + Enter で topまたはtasklist を自動で入力する関数
-		const typeCommand = async () => {
-			//自動でvsコードターミナルを開く
-			terminal.show();
-			//実際にコマンドを叩く
-			terminal.sendText("tasklist" + "\n" + "top");
-		};
-
-		//関数の呼び出し
-		typeCommand();
-	});
-
-	context.subscriptions.push(displayInTerminal);
 }
 
 
-		
 
 // this method is called when your extension is deactivated
 export function deactivate() {}

@@ -138,14 +138,14 @@ def twitter_favorite():
         req = request.args
         AT = req.get("oauth_token")
         AS = req.get("oauth_verifier")
-        ID = req.get("id")
+        ID = req.get("twitter_id")
 
-        auth.set_access_token(auth.access_token,auth.access_token_secret)
+        auth.set_access_token(AT,AS)
         api = tweepy.API(auth)
         # api.update_status("テスト")
 
         try:
-            api.create_favorite(ID)
+            api.create_favorite(id=ID)
         except tweepy.error.TweepError as e:
             print(e)
 
@@ -176,44 +176,12 @@ def twitter_favorite():
             'error':'error'
         })
 
-        #  # try:
-        # req = request.args
-        # ck = req.get("oauth_token")
-        # cs = req.get("oauth_verifier")
-        # ID = req.get("id")
+@app.route('/favorite/redirect' ,methods=["GET"])
+def twitter_favorite_redirect():
+    req = request.args
+    ID = req.get("twitter_id")
 
-        # print(ck)
-        # print(cs)
-        # print(ID)
-
-        # access_token_url = 'https://api.twitter.com/oauth/access_token'
-
-        # #OAuth認証でアクセストークンを取得
-
-        # print(res)
-
-        # #アクセストークンを取り出す
-        # AT = res.get('oauth_token')
-        # AS = res.get('oauth_token_secret')
-
-        # print(AT)
-        # print(AS)
-
-        # #TwitterBOTのテスト
-        # #Pythonという文字列を含むツイートをふぁぼる
-
-    # except:
-    #     return jsonify({
-    #         'status':False,
-    #         'error':'error'
-    #     })
-
-#     return jsonify({
-#             'status':True,
-#             'oauthToken':oauthToken,
-#             'oauthVerifier':oauthVerifier,
-#             'id':ID
-#         })
+    return redirect(f'vscode://sysken.hiding-twitter?twitter_id={ID}')
 
 @app.route('/')
 def index():
