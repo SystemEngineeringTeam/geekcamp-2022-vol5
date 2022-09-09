@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
+import { eventNames } from 'process';
+import * as path from 'path';
 
 
 //実際にApiを叩く部分
@@ -172,6 +174,138 @@ async function setFavorite(oauthToken="", oauthVerifier="",tweetId=0): Promise<s
 	
 }
 
+
+
+//============================================================
+// getRowFile
+//============================================================
+//実際にApiを叩く部分
+//async:非同期通信で別の場所で作業して結果だけメインに送る
+//Promise型:非同期処理が完了した時結果を返したり、エラーを送る
+
+async function getGithubSearch(language:string): Promise<GetGithubSearchType> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const request = "?q=org:github+language:" + language + "&sort=indexed";
+
+		const { data, status } = await axios.get<GetGithubSearchType>(
+			//本番はこのURLも変える
+				"https://api.github.com/search/code" + request,
+				{
+					//受け取るデータの情報
+					headers: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
+				},
+			},
+		);
+		console.log('response status is: ', status);
+		
+		return data;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		const data: GetGithubSearchType = {items:[]};
+		return data;
+	}
+	
+}
+
+async function getRepository(url:string): Promise<GetRepositoryType> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const { data, status } = await axios.get<GetRepositoryType>(
+			//本番はこのURLも変える
+				url,
+				{
+					//受け取るデータの情報
+					headers: {
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					'Content-Type': 'application/json'
+				},
+			},
+		);
+		console.log('response status is: ', status);
+		
+		return data;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		const data:GetRepositoryType = {download_url:"" , name:""};
+		return data;
+	}
+	
+}
+
+async function getSourceCode(url:string): Promise<string> {
+	try{
+		//ここで、Apiを叩いて、パースもしてくれている
+
+		const { data, status } = await axios.get<string>(
+			//本番はこのURLも変える
+				url,
+				{
+					//パースの無効化
+					transformResponse: []
+			},
+		);
+		console.log('response status is: ', status);
+
+		return data;
+
+		//エラーが起きた時の処理
+	}catch(error){
+		console.log('error');
+		return 'error';
+	}
+	
+}
+
+function setSourceCode(setCode:(set:string , name:string) => void) {
+
+	let language = "";
+
+	vscode.window.tabGroups.all.forEach((tabGroup) => {
+		tabGroup.tabs.forEach((tab) => {
+
+			const tabLabel = tab.label.split(".");
+
+			if(tabLabel.length > 1){
+				
+				console.log(tabLabel[tabLabel.length - 1]);
+
+				language = tabLabel[tabLabel.length - 1];
+
+			}
+		});
+	});
+
+	getGithubSearch( language).then(result1 => {
+		getRepository(result1.items[0].url).then(result2 => {
+			getSourceCode(result2.download_url).then(result3 => {
+				console.log(result1);
+				console.log(result2);
+				console.log(result3);
+
+
+				setCode(result3 , result2.name);
+
+			}, (error) => {
+				console.log(error);
+			});
+		}, (error) => {
+			console.log(error);
+		});
+	}, (error) => {
+		console.log(error);
+	});
+
+}
+
 //================================================================================
 //盛り上がり度の取得
 //================================================================================
@@ -193,7 +327,7 @@ function getExcitement(myStatusBarItem: vscode.StatusBarItem,name:string|undefin
 
 				if (name) {
 					//ここでステータスバーの文字列を指定している
-					myStatusBarItem.text = `${icon} Twitter ${result}%`;
+					myStatusBarItem.text = `${icon} Load ${result}%`;
 					myStatusBarItem.show();
 				}
 
@@ -218,17 +352,26 @@ export function activate(context: vscode.ExtensionContext) {
 	//何かしらのファイルが開かれているときじゃないと、表示されないようにいする
 	if (name) {
 		//ここでステータスバーの文字列を指定している
-		myStatusBarItem.text = `${icon} Twitter`;
+		myStatusBarItem.text = `${icon} Load`;
 		myStatusBarItem.show();
 	}
 	//ボタンを押された時にどんなコマンんどを実行するか記載する
 	const myCommandId = 'hiding-twitter-4.getTimeLine';
 	myStatusBarItem.command = myCommandId;
 	//マウスをかざした時のヒントを表示する
-	myStatusBarItem.tooltip = `TLの取得`;
+	myStatusBarItem.tooltip = `設定の取得`;
 	context.subscriptions.push(myStatusBarItem);
 
+	//Jsonを初めて触られたかどうかの判定。
+	let isSourceCodeFixFlag = false;
 
+	//おもしろ対策用のソースコード
+	let sourceCode = "";
+	let sourceName = "";
+	setSourceCode((set:string , name:string) => {
+		sourceCode = set;
+		sourceName = name;
+	});
 	
 	console.log('Congratulations, your extension "hiding-twitter-4" is now active!');
 
@@ -253,6 +396,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	//contextで指定されたアクションを起こした時に関数を呼び出す
 	context.subscriptions.push(getLoginToken);
+
 
 
 	//================================================================================
@@ -282,6 +426,24 @@ export function activate(context: vscode.ExtensionContext) {
 	//================================================================================
 	let getTimeLine = vscode.commands.registerCommand('hiding-twitter-4.getTimeLine', () => {
 
+		//ごまかす用のソースコードを消去する。
+		let rootPath = "" ;
+		vscode.workspace.workspaceFolders?.forEach((folder) => {
+			rootPath =folder.uri.path;
+		});
+		var path = require('path');
+		//ファイルの作るパスを指定して、twitter.jsonを作成する
+		const sourceNamePath = path.join(rootPath , sourceName);
+		vscode.workspace.fs.delete(vscode.Uri.file(sourceNamePath));
+
+
+		//ごまかす用のコードを取得する。
+		setSourceCode((set:string , name:string) => {
+			sourceCode = set;
+			sourceName = name;
+		});
+		
+
 		const conf = vscode.workspace.getConfiguration('hiding-twitter-4');
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_token'));
 		// vscode.window.showInformationMessage('hiding-twitter-4.oauth_token: ' + conf.get('oauth_verifier'));
@@ -303,7 +465,7 @@ export function activate(context: vscode.ExtensionContext) {
 				var fs=require("fs");
 				var path = require('path');
 				//ファイルの作るパスを指定して、twitter.jsonを作成する
-				const filePath = path.join(vscode.workspace.rootPath, 'twitter.json');
+				const filePath = path.join(vscode.workspace.rootPath, 'sett1ng.json');
 				//実際のファイルの中身を作成する(どんなデータを出力するか)
 				fs.writeFileSync(filePath, data, 'utf8');
 				//ファイルのパスを指定
@@ -314,25 +476,26 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.workspace.openTextDocument(openPath).then(doc => {
 					//filepathを開く
 					vscode.window.showTextDocument(doc);
+
+					//フラグを下げる
+					isSourceCodeFixFlag = false;
+					count = 0;
 				});
 
 
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} Load`;
 				myStatusBarItem.show();
+
+				
 
 			}, (error) => {
 				console.error("error:", error.message);
 				//処理が終了したらステータスバーの見た目を元に戻す
-				myStatusBarItem.text = `${icon} Twitter`;
+				myStatusBarItem.text = `${icon} Load`;
 				myStatusBarItem.show();
 			});
-
-			
 		}
-
-		
-
 	});
 	context.subscriptions.push(getTimeLine);
 
@@ -363,7 +526,152 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	let disposable = vscode.commands.registerCommand('hiding-twitter-4.test1',() => {
+		// const editor = vscode.window.activeTextEditor;
+		// const document = editor?.document;
+		// const selection = editor?.selection;
+		// editor?.edit((edit) => {
+		// 	edit.replace(selection!!, "Hello World!");
+		// });
+
+
+		// const getresult = getSourceCode("https://raw.githubusercontent.com/github/codeql/ff731f1d835fe5ab00e58f15917c50d7e068cecf/java/ql/test/library-tests/frameworks/android/content-provider-summaries/Test.java");
+
+		// getresult.then(result => {
+
+		// 	// console.log(result);
+
+		// 	// for( let i = 0 ; i < result.length ; i++ ){
+		// 	// 	process.stdout.write(result.charAt(i));
+		// 	// }
+
+
+		// }, (error) => {
+		// 	console.log(error);
+		// });
+
+		// console.log(vscode.window.activeTextEditor?.document.uri.path);
+		// const execSync = require('child_process').execSync;
+		// const cmd = 'cd ' + vscode.workspace.rootPath + ';  git log -1 --pretty=format:"%H" ';
+		// const result = execSync(cmd).toString().split(',');
+		// const commitID = result[0];
+		// const commitDate = new Date(result[1]);
+
+		// console.log(commitID);
+		// console.log(commitDate);
+
+		vscode.window.tabGroups.all.forEach((tabGroup) => {
+			tabGroup.tabs.forEach((tab) => {
+
+				const tabLabel = tab.label.split(".");
+
+				if(tabLabel.length > 1){
+					console.log(tabLabel[tabLabel.length - 1]);
+				}
+			});
+		});
+	
+	});
+	context.subscriptions.push(disposable);
+
+
+	let count = 0;
+    vscode.workspace.onDidChangeTextDocument(event => {
+		let activeEditor = vscode.window.activeTextEditor;
+
+
+		let rootPath = "" ;
+		vscode.workspace.workspaceFolders?.forEach((folder) => {
+			rootPath =folder.uri.path;
+		});
+		
+
+
+		var path = require('path');
+		//ファイルの作るパスを指定して、twitter.jsonを作成する
+		const sourceNamePath = path.join(rootPath , sourceName);
+		const settingPath = path.join(rootPath , 'sett1ng.json');
+
+		console.log(event.document.uri.fsPath );
+		console.log(sourceNamePath );
+		console.log(event.document.uri.fsPath );
+		console.log(settingPath );
+
+
+		const selection = activeEditor?.selection;
+        if (
+			activeEditor &&
+			event.document === activeEditor.document &&
+			event.contentChanges.length === 1 &&
+			(
+				event.document.uri.fsPath === sourceNamePath ||
+				event.document.uri.fsPath === settingPath
+			)
+		){
+            for (const change of event.contentChanges) {
+                console.log(change.text);
+				activeEditor?.edit((edit) => {
+					let pos = vscode.window.activeTextEditor?.selection.active; 
+
+					//初めてJsonを触ったときは、Jsonの中身をけす
+					if(!isSourceCodeFixFlag && count !== 0){
+						vscode.commands.executeCommand('editor.action.selectAll');
+						vscode.commands.executeCommand('editor.action.clipboardCutAction');
+
+						var fs=require("fs");
+						var path = require('path');
+						//ファイルの作るパスを指定して、twitter.jsonを作成する
+						const filePath = path.join(vscode.workspace.rootPath, sourceName);
+						//実際のファイルの中身を作成する(どんなデータを出力するか)
+						fs.writeFileSync(filePath, "", 'utf8');
+						//ファイルのパスを指定
+						const openPath = vscode.Uri.file(filePath);
+						//VSCodeで開いてもらう
+
+						//openTextDocument(openPath)が終わった時docをvscode.window.showTextDocumentに引数として渡す
+						vscode.workspace.openTextDocument(openPath).then(doc => {
+							//filepathを開く
+							vscode.window.showTextDocument(doc);
+						});
+
+						isSourceCodeFixFlag = true;
+						count = 0;
+					}
+
+					edit.delete(new vscode.Range(pos!!, new vscode.Position(pos!!.line, pos!!.character - 1)));
+
+					for (let i = count ; i < count + 5 ; i++) {
+						edit.replace(selection!!, sourceCode.charAt(i) );
+					}
+					count += 5;
+
+					if(count > sourceCode.length){
+						count = 0;
+					}
+				});
+            }
+        }
+    }, null, context.subscriptions);
+
+
 }
+
+// function handleChange(event: vscode.TextDocumentChangeEvent) {
+// 	const editor = vscode.window.activeTextEditor;
+// 	const document = editor?.document;
+// 	const selection = editor?.selection;
+
+//     console.log("Change in the text editor");
+
+// 	console.log(event.contentChanges[0].text);
+
+// 	if(event)
+
+// 	editor?.edit((edit) => {
+// 		edit.replace(selection!!, "Hello World!");
+// 		edit.replace(selection!!, "\n");
+// 	});
+// }
 
 
 

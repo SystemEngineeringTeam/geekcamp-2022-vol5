@@ -56,6 +56,10 @@
 				"title": "タイムラインの取得"
 			},
 			{
+				"command": "hiding-twitter-4.test1",
+				"title": "自動書き込み"
+			},
+			{
 				"command": "hiding-twitter-4.getLoginToken",
 				"title": "ログイン",
 				"icon": {
