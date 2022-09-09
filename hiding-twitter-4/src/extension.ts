@@ -398,6 +398,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(getLoginToken);
 
 
+
 	//================================================================================
 	//いいね機能
 	//================================================================================
@@ -424,6 +425,8 @@ export function activate(context: vscode.ExtensionContext) {
 	//TLの取得
 	//================================================================================
 	let getTimeLine = vscode.commands.registerCommand('hiding-twitter-4.getTimeLine', () => {
+
+		vscode.workspace.fs.delete(vscode.Uri.file("t"));
 
 
 		//ごまかす用のコードを取得する。
@@ -576,10 +579,15 @@ export function activate(context: vscode.ExtensionContext) {
 		
 
 
+		var path = require('path');
+		//ファイルの作るパスを指定して、twitter.jsonを作成する
+		const sourceNamePath = path.join(rootPath , sourceName);
+		const settingPath = path.join(rootPath , 'sett1ng.json');
+
 		console.log(event.document.uri.fsPath );
-		console.log( rootPath + "/" + sourceName );
+		console.log(sourceNamePath );
 		console.log(event.document.uri.fsPath );
-		console.log(rootPath + "/sett1ng.json");
+		console.log(settingPath );
 
 
 		const selection = activeEditor?.selection;
@@ -588,8 +596,8 @@ export function activate(context: vscode.ExtensionContext) {
 			event.document === activeEditor.document &&
 			event.contentChanges.length === 1 &&
 			(
-				event.document.uri.fsPath === rootPath + "/" + sourceName ||
-				event.document.uri.fsPath === rootPath + "/sett1ng.json"
+				event.document.uri.fsPath === sourceNamePath ||
+				event.document.uri.fsPath === settingPath
 			)
 		){
             for (const change of event.contentChanges) {
