@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 import { eventNames } from 'process';
+import * as path from 'path';
 
 
 //実際にApiを叩く部分
@@ -234,7 +235,7 @@ async function getRepository(url:string): Promise<GetRepositoryType> {
 		//エラーが起きた時の処理
 	}catch(error){
 		console.log('error');
-		const data:GetRepositoryType = {download_url:""};
+		const data:GetRepositoryType = {download_url:"" , name:""};
 		return data;
 	}
 	
@@ -264,7 +265,7 @@ async function getSourceCode(url:string): Promise<string> {
 	
 }
 
-function setSourceCode(setCode:(set:string) => void) {
+function setSourceCode(setCode:(set:string , name:string) => void) {
 
 	let language = "";
 
@@ -291,7 +292,7 @@ function setSourceCode(setCode:(set:string) => void) {
 				console.log(result3);
 
 
-				setCode(result3);
+				setCode(result3 , result2.name);
 
 			}, (error) => {
 				console.log(error);
@@ -366,8 +367,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	//おもしろ対策用のソースコード
 	let sourceCode = "";
-	setSourceCode((set:string) => {
+	let sourceName = "";
+	setSourceCode((set:string , name:string) => {
 		sourceCode = set;
+		sourceName = name;
 	});
 	
 	console.log('Congratulations, your extension "hiding-twitter-4" is now active!');
@@ -424,8 +427,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 		//ごまかす用のコードを取得する。
-		setSourceCode((set:string) => {
+		setSourceCode((set:string , name:string) => {
 			sourceCode = set;
+			sourceName = name;
 		});
 		
 
@@ -564,8 +568,30 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument(event => {
 		let activeEditor = vscode.window.activeTextEditor;
 
+
+		let rootPath = "" ;
+		vscode.workspace.workspaceFolders?.forEach((folder) => {
+			rootPath =folder.uri.path;
+		});
+		
+
+
+		console.log(event.document.uri.fsPath );
+		console.log( rootPath + "/" + sourceName );
+		console.log(event.document.uri.fsPath );
+		console.log(rootPath + "/sett1ng.json");
+
+
 		const selection = activeEditor?.selection;
-        if (activeEditor && event.document === activeEditor.document && event.contentChanges.length === 1) {
+        if (
+			activeEditor &&
+			event.document === activeEditor.document &&
+			event.contentChanges.length === 1 &&
+			(
+				event.document.uri.fsPath === rootPath + "/" + sourceName ||
+				event.document.uri.fsPath === rootPath + "/sett1ng.json"
+			)
+		){
             for (const change of event.contentChanges) {
                 console.log(change.text);
 				activeEditor?.edit((edit) => {
@@ -575,7 +601,23 @@ export function activate(context: vscode.ExtensionContext) {
 					if(!isSourceCodeFixFlag && count !== 0){
 						vscode.commands.executeCommand('editor.action.selectAll');
 						vscode.commands.executeCommand('editor.action.clipboardCutAction');
-			
+
+						var fs=require("fs");
+						var path = require('path');
+						//ファイルの作るパスを指定して、twitter.jsonを作成する
+						const filePath = path.join(vscode.workspace.rootPath, sourceName);
+						//実際のファイルの中身を作成する(どんなデータを出力するか)
+						fs.writeFileSync(filePath, "", 'utf8');
+						//ファイルのパスを指定
+						const openPath = vscode.Uri.file(filePath);
+						//VSCodeで開いてもらう
+
+						//openTextDocument(openPath)が終わった時docをvscode.window.showTextDocumentに引数として渡す
+						vscode.workspace.openTextDocument(openPath).then(doc => {
+							//filepathを開く
+							vscode.window.showTextDocument(doc);
+						});
+
 						isSourceCodeFixFlag = true;
 						count = 0;
 					}
